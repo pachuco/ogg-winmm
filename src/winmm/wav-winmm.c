@@ -29,8 +29,7 @@
 
 #endif
 
-struct track_info
-{
+struct track_info {
     char path[MAX_PATH];    // full path to ogg
     unsigned int length;    // seconds
     unsigned int position;  // seconds
@@ -38,8 +37,7 @@ struct track_info
 
 static struct track_info tracks[MAX_TRACKS];
 
-struct play_info
-{
+struct play_info {
     int first;
     int last;
 };
@@ -63,17 +61,14 @@ int time_format = MCI_FORMAT_TMSF;
 CRITICAL_SECTION cs;
 static struct play_info info = { -1, -1 };
 
-int player_main()
-{
+int player_main() {
     int first;
     int last;
     int current;
 
-    while (!closed)
-    {
+    while (!closed) {
         //set track info
-        if (updateTrack)
-        {
+        if (updateTrack) {
             first = info.first;
             last = info.last;
             current = first;
@@ -83,36 +78,25 @@ int player_main()
         //stop if at end of 'playlist'
         //note "last" track is NON-inclusive
 		//if the "first" track equals "last" track then play that single track
-        if (first == last && current > last || first != last && current == last)
+        if (first == last && current > last || first != last && current == last) {
             playing = 0;
-
-        //try to play song
-        else
-        {
+        } else { //try to play song
             dprintf("Next track: %s\r\n", tracks[current].path);
             playing = plr_play(tracks[current].path);
         }
 
-        while (1)
-        {
+        while (1) {
             //check control signals
 
-            if (closed) //MCI_CLOSE
-                break;
-            
-            if (!playing) //MCI_STOP
-            {
+            if (closed) break; //MCI_CLOSE
+            if (!playing) { //MCI_STOP
                 plr_stop(); //end playback
                 SuspendThread(player); //pause thread until next MCI_PLAY
             }
 
-            if (plr_pump() == 0) //done playing song
-                break;
-
-            if (updateTrack) //MCI_PLAY
-                break;
+            if (plr_pump() == 0) break; //done playing song
+            if (updateTrack) break; //MCI_PLAY
         }
-
         current++;
     }
     plr_stop();
@@ -121,10 +105,8 @@ int player_main()
     return 0;
 }
 
-BOOL WINAPI DllMain(HINSTANCE hinstDLL, DWORD fdwReason, LPVOID lpvReserved)
-{
-    if (fdwReason == DLL_PROCESS_ATTACH)
-    {
+BOOL WINAPI DllMain(HINSTANCE hinstDLL, DWORD fdwReason, LPVOID lpvReserved) {
+    if (fdwReason == DLL_PROCESS_ATTACH) {
 #ifdef _DEBUG
         fh = fopen("winmm.txt", "w");
 #endif
@@ -135,10 +117,7 @@ BOOL WINAPI DllMain(HINSTANCE hinstDLL, DWORD fdwReason, LPVOID lpvReserved)
         InitializeCriticalSection(&cs);
 
         char *last = strrchr(music_path, '\\');
-        if (last)
-        {
-            *last = '\0';
-        }
+        if (last) *last = '\0';
         strncat(music_path, "\\MUSIC", sizeof music_path - 1);
 
         dprintf("ogg-winmm music directory is %s\r\n", music_path);
@@ -146,23 +125,16 @@ BOOL WINAPI DllMain(HINSTANCE hinstDLL, DWORD fdwReason, LPVOID lpvReserved)
 
         unsigned int position = 0;
 
-        for (int i = 0; i < MAX_TRACKS; i++)
-        {
+        for (int i = 0; i < MAX_TRACKS; i++) {
             snprintf(tracks[i].path, sizeof tracks[i].path, "%s\\Track%02d.ogg", music_path, i);
             tracks[i].length = plr_length(tracks[i].path);
             tracks[i].position = position;
 
-            if (tracks[i].length < 4)
-            {
+            if (tracks[i].length < 4) {
                 tracks[i].path[0] = '\0';
                 position += 4; // missing tracks are 4 second data tracks for us
-            }
-            else
-            {
-                if (firstTrack == -1)
-                {
-                    firstTrack = i;
-                }
+            } else {
+                if (firstTrack == -1) firstTrack = i;
 
                 dprintf("Track %02d: %02d:%02d @ %d seconds\r\n", i, tracks[i].length / 60, tracks[i].length % 60, tracks[i].position);
                 numTracks++;
@@ -175,10 +147,8 @@ BOOL WINAPI DllMain(HINSTANCE hinstDLL, DWORD fdwReason, LPVOID lpvReserved)
     }
 
 #ifdef _DEBUG
-    if (fdwReason == DLL_PROCESS_DETACH)
-    {
-        if (fh)
-        {
+    if (fdwReason == DLL_PROCESS_DETACH) {
+        if (fh) {
             fclose(fh);
             fh = NULL;
         }
@@ -188,122 +158,87 @@ BOOL WINAPI DllMain(HINSTANCE hinstDLL, DWORD fdwReason, LPVOID lpvReserved)
     return TRUE;
 }
 
-MCIERROR WINAPI fake_mciSendCommandA(MCIDEVICEID IDDevice, UINT uMsg, DWORD_PTR fdwCommand, DWORD_PTR dwParam)
-{
+MCIERROR WINAPI fake_mciSendCommandA(MCIDEVICEID IDDevice, UINT uMsg, DWORD_PTR fdwCommand, DWORD_PTR dwParam) {
     char cmdbuf[1024];
 
     dprintf("mciSendCommandA(IDDevice=%p, uMsg=%p, fdwCommand=%p, dwParam=%p)\r\n", IDDevice, uMsg, fdwCommand, dwParam);
 
-    if (fdwCommand & MCI_NOTIFY)
-    {
+    if (fdwCommand & MCI_NOTIFY) {
         dprintf("  MCI_NOTIFY\r\n");
     }
 
-    if (fdwCommand & MCI_WAIT)
-    {
+    if (fdwCommand & MCI_WAIT) {
         dprintf("  MCI_WAIT\r\n");
     }
 
-    if (uMsg == MCI_OPEN)
-    {
+    if (uMsg == MCI_OPEN) {
         LPMCI_OPEN_PARMS parms = (LPVOID)dwParam;
 
         dprintf("  MCI_OPEN\r\n");
 
-        if (fdwCommand & MCI_OPEN_ALIAS)
-        {
+        if (fdwCommand & MCI_OPEN_ALIAS) {
             dprintf("    MCI_OPEN_ALIAS\r\n");
         }
 
-        if (fdwCommand & MCI_OPEN_SHAREABLE)
-        {
+        if (fdwCommand & MCI_OPEN_SHAREABLE) {
             dprintf("    MCI_OPEN_SHAREABLE\r\n");
         }
 
-        if (fdwCommand & MCI_OPEN_TYPE_ID)
-        {
+        if (fdwCommand & MCI_OPEN_TYPE_ID) {
             dprintf("    MCI_OPEN_TYPE_ID\r\n");
 
-            if (LOWORD(parms->lpstrDeviceType) == MCI_DEVTYPE_CD_AUDIO)
-            {
+            if (LOWORD(parms->lpstrDeviceType) == MCI_DEVTYPE_CD_AUDIO) {
                 dprintf("  Returning magic device id for MCI_DEVTYPE_CD_AUDIO\r\n");
                 parms->wDeviceID = MAGIC_DEVICEID;
                 return 0;
             }
         }
 
-        if (fdwCommand & MCI_OPEN_TYPE && !(fdwCommand & MCI_OPEN_TYPE_ID))
-        {
+        if (fdwCommand & MCI_OPEN_TYPE && !(fdwCommand & MCI_OPEN_TYPE_ID)) {
             dprintf("    MCI_OPEN_TYPE\r\n");
             dprintf("        -> %s\r\n", parms->lpstrDeviceType);
 
-            if (strcmp(parms->lpstrDeviceType, "cdaudio") == 0)
-            {
+            if (strcmp(parms->lpstrDeviceType, "cdaudio") == 0) {
                 dprintf("  Returning magic device id for MCI_DEVTYPE_CD_AUDIO\r\n");
                 parms->wDeviceID = MAGIC_DEVICEID;
                 return 0;
             }
         }
-
     }
 
-    if (IDDevice == MAGIC_DEVICEID || IDDevice == 0 || IDDevice == 0xFFFFFFFF)
-    {
-        if (uMsg == MCI_SET)
-        {
+    if (IDDevice == MAGIC_DEVICEID || IDDevice == 0 || IDDevice == 0xFFFFFFFF) {
+        if (uMsg == MCI_SET) {
             LPMCI_SET_PARMS parms = (LPVOID)dwParam;
 
             dprintf("  MCI_SET\r\n");
 
-            if (fdwCommand & MCI_SET_TIME_FORMAT)
-            {
+            if (fdwCommand & MCI_SET_TIME_FORMAT) {
                 dprintf("    MCI_SET_TIME_FORMAT\r\n");
 
                 time_format = parms->dwTimeFormat;
 
-                if (parms->dwTimeFormat == MCI_FORMAT_BYTES)
-                {
+                if        (parms->dwTimeFormat == MCI_FORMAT_BYTES) {
                     dprintf("      MCI_FORMAT_BYTES\r\n");
-                }
-
-                if (parms->dwTimeFormat == MCI_FORMAT_FRAMES)
-                {
+                } else if (parms->dwTimeFormat == MCI_FORMAT_FRAMES) {
                     dprintf("      MCI_FORMAT_FRAMES\r\n");
-                }
-
-                if (parms->dwTimeFormat == MCI_FORMAT_HMS)
-                {
+                } else if (parms->dwTimeFormat == MCI_FORMAT_HMS) {
                     dprintf("      MCI_FORMAT_HMS\r\n");
-                }
-
-                if (parms->dwTimeFormat == MCI_FORMAT_MILLISECONDS)
-                {
+                } else if (parms->dwTimeFormat == MCI_FORMAT_MILLISECONDS) {
                     dprintf("      MCI_FORMAT_MILLISECONDS\r\n");
-                }
-
-                if (parms->dwTimeFormat == MCI_FORMAT_MSF)
-                {
+                } else if (parms->dwTimeFormat == MCI_FORMAT_MSF) {
                     dprintf("      MCI_FORMAT_MSF\r\n");
-                }
-
-                if (parms->dwTimeFormat == MCI_FORMAT_SAMPLES)
-                {
+                } else if (parms->dwTimeFormat == MCI_FORMAT_SAMPLES) {
                     dprintf("      MCI_FORMAT_SAMPLES\r\n");
-                }
-
-                if (parms->dwTimeFormat == MCI_FORMAT_TMSF)
-                {
+                } else if (parms->dwTimeFormat == MCI_FORMAT_TMSF) {
                     dprintf("      MCI_FORMAT_TMSF\r\n");
                 }
             }
         }
 
-        if (uMsg == MCI_CLOSE)
-        {
+        if (uMsg == MCI_CLOSE) {
             dprintf("  MCI_CLOSE\r\n");
 
-            if (player)
-            {
+            if (player) {
                 ResumeThread(player); //just in case it's suspended, else deadlock
                 closed = 1;
                 playing = 0;
@@ -313,97 +248,77 @@ MCIERROR WINAPI fake_mciSendCommandA(MCIDEVICEID IDDevice, UINT uMsg, DWORD_PTR 
             player = NULL;
         }
 
-        if (uMsg == MCI_PLAY)
-        {
+        if (uMsg == MCI_PLAY) {
             LPMCI_PLAY_PARMS parms = (LPVOID)dwParam;
 
             dprintf("  MCI_PLAY\r\n");
 
-            if (fdwCommand & MCI_FROM)
-            {
+            if (fdwCommand & MCI_FROM) {
                 dprintf("    dwFrom: %d\r\n", parms->dwFrom);
 
                 // FIXME: rounding to nearest track
-                if (time_format == MCI_FORMAT_TMSF)
-                {
+                if (time_format == MCI_FORMAT_TMSF) {
                     info.first = MCI_TMSF_TRACK(parms->dwFrom);
 
                     dprintf("      TRACK  %d\n", MCI_TMSF_TRACK(parms->dwFrom));
                     dprintf("      MINUTE %d\n", MCI_TMSF_MINUTE(parms->dwFrom));
                     dprintf("      SECOND %d\n", MCI_TMSF_SECOND(parms->dwFrom));
                     dprintf("      FRAME  %d\n", MCI_TMSF_FRAME(parms->dwFrom));
-                }
-                else if (time_format == MCI_FORMAT_MILLISECONDS)
-                {
+                } else if (time_format == MCI_FORMAT_MILLISECONDS) {
                     info.first = 0;
 
-                    for (int i = 0; i < MAX_TRACKS; i++)
-                    {
+                    for (int i = 0; i < MAX_TRACKS; i++) {
                         // FIXME: take closest instead of absolute
-                        if (tracks[i].position == parms->dwFrom / 1000)
-                        {
+                        if (tracks[i].position == parms->dwFrom / 1000) {
                             info.first = i;
                         }
                     }
 
                     dprintf("      mapped milliseconds to %d\n", info.first);
-                }
-                else
-                {
+                } else {
                     // FIXME: not really
                     info.first = parms->dwFrom;
                 }
 
-                if (info.first < firstTrack)
-                    info.first = firstTrack;
+                if (info.first < firstTrack) info.first = firstTrack;
 
-                if (info.first > lastTrack)
-                    info.first = lastTrack;
+                if (info.first > lastTrack) info.first = lastTrack;
 
                 info.last = info.first;
             }
 
-            if (fdwCommand & MCI_TO)
-            {
+            if (fdwCommand & MCI_TO) {
                 dprintf("    dwTo:   %d\r\n", parms->dwTo);
 
-                if (time_format == MCI_FORMAT_TMSF)
-                {
+                if (time_format == MCI_FORMAT_TMSF) {
                     info.last = MCI_TMSF_TRACK(parms->dwTo);
 
                     dprintf("      TRACK  %d\n", MCI_TMSF_TRACK(parms->dwTo));
                     dprintf("      MINUTE %d\n", MCI_TMSF_MINUTE(parms->dwTo));
                     dprintf("      SECOND %d\n", MCI_TMSF_SECOND(parms->dwTo));
                     dprintf("      FRAME  %d\n", MCI_TMSF_FRAME(parms->dwTo));
-                }
-                else if (time_format == MCI_FORMAT_MILLISECONDS)
-                {
+                } else if (time_format == MCI_FORMAT_MILLISECONDS) {
                     info.last = info.first;
 
-                    for (int i = info.first; i < MAX_TRACKS; i++)
-                    {
+                    for (int i = info.first; i < MAX_TRACKS; i++) {
                         // FIXME: use better matching
-                        if (tracks[i].position + tracks[i].length > parms->dwFrom / 1000)
-                        {
+                        if (tracks[i].position + tracks[i].length > parms->dwFrom / 1000) {
                             info.last = i;
                             break;
                         }
                     }
 
                     dprintf("      mapped milliseconds to %d\n", info.last);
-                }
-                else
+                } else {
                     info.last = parms->dwTo;
+                }
 
-                if (info.last < info.first)
-                    info.last = info.first;
+                if (info.last < info.first) info.last = info.first;
 
-                if (info.last > lastTrack)
-                    info.last = lastTrack;
+                if (info.last > lastTrack)  info.last = lastTrack;
             }
 
-            if (info.first && (fdwCommand & MCI_FROM))
-            {
+            if (info.first && (fdwCommand & MCI_FROM)) {
                 updateTrack = 1;
                 playing = 1;
 
@@ -415,102 +330,83 @@ MCIERROR WINAPI fake_mciSendCommandA(MCIDEVICEID IDDevice, UINT uMsg, DWORD_PTR 
             }
         }
 
-        if (uMsg == MCI_STOP)
-        {
+        if (uMsg == MCI_STOP) {
             dprintf("  MCI_STOP\r\n");
             playing = 0;
         }
 
-        if (uMsg == MCI_STATUS)
-        {
+        if (uMsg == MCI_STATUS) {
             LPMCI_STATUS_PARMS parms = (LPVOID)dwParam;
 
             dprintf("  MCI_STATUS\r\n");
 
             parms->dwReturn = 0;
 
-            if (fdwCommand & MCI_TRACK)
-            {
+            if (fdwCommand & MCI_TRACK) {
                 dprintf("    MCI_TRACK\r\n");
                 dprintf("      dwTrack = %d\r\n", parms->dwTrack);
             }
 
-            if (fdwCommand & MCI_STATUS_ITEM)
-            {
+            if (fdwCommand & MCI_STATUS_ITEM) {
                 dprintf("    MCI_STATUS_ITEM\r\n");
 
-                if (parms->dwItem == MCI_STATUS_CURRENT_TRACK)
-                {
+                if (parms->dwItem == MCI_STATUS_CURRENT_TRACK) {
                     dprintf("      MCI_STATUS_CURRENT_TRACK\r\n");
                 }
 
-                if (parms->dwItem == MCI_STATUS_LENGTH)
-                {
+                if (parms->dwItem == MCI_STATUS_LENGTH) {
                     dprintf("      MCI_STATUS_LENGTH\r\n");
 
                     int seconds = tracks[parms->dwTrack].length;
 
-                    if (seconds)
-                    {
-                        if (time_format == MCI_FORMAT_MILLISECONDS)
-                        {
+                    if (seconds) {
+                        if (time_format == MCI_FORMAT_MILLISECONDS) {
                             parms->dwReturn = seconds * 1000;
-                        }
-                        else
-                        {
+                        } else {
                             parms->dwReturn = MCI_MAKE_MSF(seconds / 60, seconds % 60, 0);
                         }
                     }
                 }
 
-                if (parms->dwItem == MCI_CDA_STATUS_TYPE_TRACK)
-                {
+                if (parms->dwItem == MCI_CDA_STATUS_TYPE_TRACK) {
                     dprintf("      MCI_CDA_STATUS_TYPE_TRACK\r\n");
                 }
 
-                if (parms->dwItem == MCI_STATUS_MEDIA_PRESENT)
-                {
+                if (parms->dwItem == MCI_STATUS_MEDIA_PRESENT) {
                     dprintf("      MCI_STATUS_MEDIA_PRESENT\r\n");
                     parms->dwReturn = lastTrack > 0;
                 }
 
-                if (parms->dwItem == MCI_STATUS_NUMBER_OF_TRACKS)
-                {
+                if (parms->dwItem == MCI_STATUS_NUMBER_OF_TRACKS) {
                     dprintf("      MCI_STATUS_NUMBER_OF_TRACKS\r\n");
                     parms->dwReturn = numTracks;
                 }
 
-                if (parms->dwItem == MCI_STATUS_POSITION)
-                {
+                if (parms->dwItem == MCI_STATUS_POSITION) {
                     dprintf("      MCI_STATUS_POSITION\r\n");
 
-                    if (fdwCommand & MCI_TRACK)
-                    {
+                    if (fdwCommand & MCI_TRACK) {
                         // FIXME: implying milliseconds
                         parms->dwReturn = tracks[parms->dwTrack].position * 1000;
                     }
                 }
 
-                if (parms->dwItem == MCI_STATUS_MODE)
-                {
+                if (parms->dwItem == MCI_STATUS_MODE) {
                     dprintf("      MCI_STATUS_MODE\r\n");
                     dprintf("        we are %s\r\n", playing ? "playing" : "NOT playing");
 
                     parms->dwReturn = playing ? MCI_MODE_PLAY : MCI_MODE_STOP;
                 }
 
-                if (parms->dwItem == MCI_STATUS_READY)
-                {
+                if (parms->dwItem == MCI_STATUS_READY) {
                     dprintf("      MCI_STATUS_READY\r\n");
                 }
 
-                if (parms->dwItem == MCI_STATUS_TIME_FORMAT)
-                {
+                if (parms->dwItem == MCI_STATUS_TIME_FORMAT) {
                     dprintf("      MCI_STATUS_TIME_FORMAT\r\n");
                 }
 
-                if (parms->dwItem == MCI_STATUS_START)
-                {
+                if (parms->dwItem == MCI_STATUS_START) {
                     dprintf("      MCI_STATUS_START\r\n");
                 }
             }
@@ -577,8 +473,7 @@ window
 */	
 
 // this is really fugly but for christ sake why did anyone use it?!
-MCIERROR WINAPI fake_mciSendStringA(LPCTSTR cmd, LPTSTR ret, UINT cchReturn, HANDLE hwndCallback)
-{
+MCIERROR WINAPI fake_mciSendStringA(LPCTSTR cmd, LPTSTR ret, UINT cchReturn, HANDLE hwndCallback) {
     dprintf("MCI-SendStringA: %s\n", cmd);
 
 	// Change string to lower-case
@@ -646,7 +541,7 @@ MCIERROR WINAPI fake_mciSendStringA(LPCTSTR cmd, LPTSTR ret, UINT cchReturn, HAN
 	if (com && strcmp(com, "status") == 0) {
 		com = strtok(NULL, " ,.-"); // Get next token
 		
-		if(com){ // TODO: FIX: Accept everything. This may bring unexpected behaviour
+		if (com) { // TODO: FIX: Accept everything. This may bring unexpected behaviour
 			com = strtok(NULL, " ,.-"); // Get next token
 			MCI_STATUS_PARMS parms;
 
@@ -660,7 +555,7 @@ MCIERROR WINAPI fake_mciSendStringA(LPCTSTR cmd, LPTSTR ret, UINT cchReturn, HAN
 					com = strtok(NULL, " ,.-"); // Get next token (TRACK NUMBER)
 					
 					// (INT) TRACK NUMBER
-					if(com){ // TODO: Check if this is an INTEGER (Number)
+					if(com) { // TODO: Check if this is an INTEGER (Number)
 						parms.dwTrack = atoi(com);
 						fake_mciSendCommandA(MAGIC_DEVICEID, MCI_STATUS, MCI_STATUS_ITEM, (DWORD_PTR)&parms);
 						itoa(parms.dwReturn, ret, 10); // Response
@@ -719,7 +614,7 @@ MCIERROR WINAPI fake_mciSendStringA(LPCTSTR cmd, LPTSTR ret, UINT cchReturn, HAN
 	if (com && strcmp(com, "play") == 0) {
 		com = strtok(NULL, " ,.-"); // Get next token
 		
-		if(com){ // TODO: FIX: Accept everything. This may bring unexpected behaviour
+		if(com) { // TODO: FIX: Accept everything. This may bring unexpected behaviour
 			com = strtok(NULL, " ,.-"); // Get next token
 
 			// FROM
@@ -727,7 +622,7 @@ MCIERROR WINAPI fake_mciSendStringA(LPCTSTR cmd, LPTSTR ret, UINT cchReturn, HAN
 				com = strtok(NULL, " ,.-"); // Get next token (FROM POS (INT))
 				
 				// (INT) From Time
-				if(com){ // TODO: Check if number is INTEGER
+				if(com) { // TODO: Check if number is INTEGER
 					
 					int posFrom = atoi(com);// Parse Integer
 					
@@ -738,7 +633,7 @@ MCIERROR WINAPI fake_mciSendStringA(LPCTSTR cmd, LPTSTR ret, UINT cchReturn, HAN
 						com = strtok(NULL, " ,.-"); // Get next token (TO POS (INT)))
 							
 							// (INT) To Time
-							if(com){
+							if(com) {
 								int posTo = atoi(com); // Parse Integer
 							
 								static MCI_PLAY_PARMS parms;
@@ -749,7 +644,7 @@ MCIERROR WINAPI fake_mciSendStringA(LPCTSTR cmd, LPTSTR ret, UINT cchReturn, HAN
 								//free(posTo); // ???
 								return 0;
 							}
-					}else{
+					} else {
 						// No TO position specified
 						static MCI_PLAY_PARMS parms;
 						parms.dwFrom = posFrom;
@@ -779,7 +674,7 @@ MCIERROR WINAPI fake_mciSendStringA(LPCTSTR cmd, LPTSTR ret, UINT cchReturn, HAN
 	}
 
 	// TODO: Unfinished. Dunno what this does.. 
-    if (strstr(cmd, "sysinfo")){
+    if (strstr(cmd, "sysinfo")) {
         strcpy(ret, "cd");
         return 0;
     }
@@ -790,14 +685,12 @@ MCIERROR WINAPI fake_mciSendStringA(LPCTSTR cmd, LPTSTR ret, UINT cchReturn, HAN
     return 0;
 }
 
-UINT WINAPI fake_auxGetNumDevs()
-{
+UINT WINAPI fake_auxGetNumDevs() {
     dprintf("fake_auxGetNumDevs()\r\n");
     return 1;
 }
 
-MMRESULT WINAPI fake_auxGetDevCapsA(UINT_PTR uDeviceID, LPAUXCAPS lpCaps, UINT cbCaps)
-{
+MMRESULT WINAPI fake_auxGetDevCapsA(UINT_PTR uDeviceID, LPAUXCAPS lpCaps, UINT cbCaps) {
     dprintf("fake_auxGetDevCapsA(uDeviceID=%08X, lpCaps=%p, cbCaps=%08X\n", uDeviceID, lpCaps, cbCaps);
 
     lpCaps->wMid = 2 /*MM_CREATIVE*/;
@@ -811,15 +704,13 @@ MMRESULT WINAPI fake_auxGetDevCapsA(UINT_PTR uDeviceID, LPAUXCAPS lpCaps, UINT c
 }
 
 
-MMRESULT WINAPI fake_auxGetVolume(UINT uDeviceID, LPDWORD lpdwVolume)
-{
+MMRESULT WINAPI fake_auxGetVolume(UINT uDeviceID, LPDWORD lpdwVolume) {
     dprintf("fake_auxGetVolume(uDeviceId=%08X, lpdwVolume=%p)\r\n", uDeviceID, lpdwVolume);
     *lpdwVolume = 0x00000000;
     return MMSYSERR_NOERROR;
 }
 
-MMRESULT WINAPI fake_auxSetVolume(UINT uDeviceID, DWORD dwVolume)
-{
+MMRESULT WINAPI fake_auxSetVolume(UINT uDeviceID, DWORD dwVolume) {
     static DWORD oldVolume = -1;
     char cmdbuf[256];
 
