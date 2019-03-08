@@ -838,7 +838,7 @@ MMRESULT WINAPI fake_auxSetVolume(UINT uDeviceID, DWORD dwVolume)
     dprintf("    left : %ud (%04X)\n", left, left);
     dprintf("    right: %ud (%04X)\n", right, right);
 
-    plr_volume((left / 65535.0f) * 100);
+    plr_volume(left, right);
 
     return MMSYSERR_NOERROR;
 }

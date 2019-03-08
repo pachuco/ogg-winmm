@@ -8,7 +8,8 @@ HWAVEOUT        plr_hwo         = NULL;
 OggVorbis_File  plr_vf;
 HANDLE          plr_ev          = NULL;
 int             plr_cnt         = 0;
-int             plr_vol         = 100;
+int             plr_lvol        = 0xFFFF;
+int             plr_rvol        = 0xFFFF;
 WAVEHDR         *plr_buffers[3] = { NULL, NULL, NULL };
 
 void plr_stop() {
@@ -39,10 +40,9 @@ void plr_stop() {
     }
 }
 
-void plr_volume(int vol) {
-    if (vol < 0) vol = 0;
-    if (vol > 100) vol = 100;
-    plr_vol = vol;
+void plr_volume(uint16_t lVol, uint16_t rVol) {
+    plr_lvol = lVol;
+    plr_rvol = rVol;
 }
 
 int plr_length(const char *path) {
@@ -136,13 +136,12 @@ int plr_pump() {
         pos += bytes;
     }
 
-    // volume control, kinda nasty
-    int x, end = pos / 2;
+    int x, end = pos / (sizeof(short)*2);
     short *sbuf = (short *)buf;
     for (x = 0; x < end; x++) {
-        sbuf[x] = sbuf[x] * (plr_vol / 100.0f);
+        sbuf[x+0] = ((int32_t)sbuf[x+0] * plr_lvol)>>16;
+        sbuf[x+1] = ((int32_t)sbuf[x+1] * plr_rvol)>>16;
     }
-        
 
     WAVEHDR *header = malloc(sizeof(WAVEHDR));
     header->dwBufferLength   = pos;
