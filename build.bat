@@ -42,7 +42,7 @@ set opts=-m32 -std=gnu99 -Wl,--enable-stdcall-fixup -O2 -shared -s
 set files=player.c wav-winmm.c stubs.c wav-winmm.def
 set files=%files% %bin%\%l_vorb%.a %bin%\%l_ogg%.a %bin%\%l_rc%.o
 set incl=-I. -I..\%l_vorb% -I..\%l_ogg%
-set links=-lwinmm
+set links=-lwinmm -lkernel32
 call :compile_dll %name% "%files% %opts% %incl% %links%"
 set includes=-I
 
@@ -104,7 +104,7 @@ exit /B 0
 ::file delIfEmpty
 if exist %~1 (
     if %~2 equ 1 (
-        for %%R in (%~2) do if not %%~zR lss 1 exit /B 0
+        for %%R in (%~1) do if not %%~zR lss 1 exit /B 0
     )
     del %~1 /Q
 )

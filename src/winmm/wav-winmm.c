@@ -78,7 +78,7 @@ int player_main() {
         //stop if at end of 'playlist'
         //note "last" track is NON-inclusive
         //if the "first" track equals "last" track then play that single track
-        if (first == last && current > last || first != last && current == last) {
+        if ((first == last && current > last) || (first != last && current == last)) {
             playing = 0;
         } else { //try to play song
             dprintf("Next track: %s\r\n", tracks[current].path);
