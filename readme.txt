@@ -1,7 +1,9 @@
 Ogg-winmm CD Audio Emulator
 
-This is based on the rkkoszewski.
+This fork is based on the rkkoszewski fork.
 https://github.com/rkkoszewski/ogg-winmm
+
+Features convenient windows build system and packaged ogg libs.
 
 
 
@@ -18,6 +20,9 @@ BUILDING:
 
 Edit gccbase from build.bat or leave it empty if already in %PATH%.
 You may also edit executable names for GCC, AR and WINDRES if they somehow differ.
+
+By default, ogg/vorbis is built only once, but you can recompile it by 
+"build force" in console.
 
 USAGE:
 
