@@ -21,8 +21,8 @@ BUILDING:
 Edit gccbase from build.bat or leave it empty if already in %PATH%.
 You may also edit executable names for GCC, AR and WINDRES if they somehow differ.
 
-By default, ogg/vorbis is built only once, but you can recompile it by 
-"build force" in console.
+By default, ogg/vorbis libs are built only once, while winmm is rebuilt everytime,
+but you can recompile libs with "build force" in console.
 
 USAGE:
 
