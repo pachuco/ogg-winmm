@@ -1,7 +1,12 @@
-# ogg-winmm CD Audio Emulator
+Ogg-winmm CD Audio Emulator
+
+This is based on the rkkoszewski.
+https://github.com/rkkoszewski/ogg-winmm
+
+
 
 This project (originally by Hifi) uses .ogg music files on the disk
-to emulate CD tracks, replacing the need otohave a CD in the drive
+to emulate CD tracks, replacing the need to have a CD in the drive
 to play music in certain games. Good Old Games uses a modified version
 for several of their games. 
 
@@ -11,11 +16,8 @@ but it's not as useful without the source available, so I fixed it myself as wel
 
 BUILDING:
 
-By default the makefile looks in a "libs\include" subdirectory for 
-"ogg" and "vorbis" dependencies.
-
-Run "make" in the folder to build winmm.dll. Copy it into the same folder
-as the executable of the game you want to emulate CD music for.
+Edit gccbase from build.bat or leave it empty if already in %PATH%.
+You may also edit executable names for GCC, AR and WINDRES if they somehow differ.
 
 USAGE:
 
@@ -23,7 +25,7 @@ Copy "winmm.dll" into the same folder as the executable of the game you want
 to emulate CD music for.
 
 In the same folder, make a "Music" subdirectory. Place the recorded music files
-from the disk as track02.ogg, track03.ogg, and so on in this Music folder. Remember,
+from the disk as Track02.ogg, Track03.ogg, and so on in this Music folder. Remember,
 it starts with track02!
 
 Now, instead of playing music from the CD, the game will play music from these

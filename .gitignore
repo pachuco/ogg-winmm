@@ -1,0 +1,4 @@
+bin/*.a
+bin/*.o
+bin/*.dll
+err_*.log
