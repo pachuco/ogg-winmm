@@ -24,6 +24,9 @@ You may also edit executable names for GCC, AR and WINDRES if they somehow diffe
 By default, ogg/vorbis libs are built only once, while winmm is rebuilt everytime,
 but you can recompile libs with "build force" in console.
 
+"build debug" enables the _DEBUG define, for extra-verbose OutputDebugString.
+You may view the output of above with tool like SysInternals DebugView.
+
 USAGE:
 
 Copy "winmm.dll" into the same folder as the executable of the game you want 

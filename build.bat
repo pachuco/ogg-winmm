@@ -6,7 +6,12 @@ set GCC=gcc.exe
 set AR=ar.exe
 set WINDRES=windres.exe
 
-if [%1] equ [force] (set FORCECOMPILE=1)
+if [%1] equ [M_FORCE] (set M_FORCE=1)
+for %%a in (%*) DO (
+    if [%%a] equ [force] (set M_FORCE=1)
+    if [%%a] equ [debug] (set M_DEBUG=1)
+)
+
 if [%gccbase%] neq [] set PATH=%PATH%;%gccbase%
 
 set bin=%CD%\bin
@@ -39,6 +44,7 @@ call :compile_ar %name% "%files% %opts% %incl% %links%"
 
 set name=%l_winmm%
 set opts=-m32 -std=gnu99 -Wl,--enable-stdcall-fixup -O2 -shared -s
+if defined M_DEBUG set opts=%opts% -D _DEBUG
 set files=player.c wav-winmm.c stubs.c wav-winmm.def
 set files=%files% %bin%\%l_vorb%.a %bin%\%l_ogg%.a %bin%\%l_rc%.o
 set incl=-I. -I..\%l_vorb% -I..\%l_ogg%
@@ -48,31 +54,21 @@ set includes=-I
 
 echo .
 echo all done!
-pause
-exit
-
-
-
-
-:errcheck
-::objname
-if %errorlevel% neq 0 (
-    echo oops %~1!
-    pause
-    call :del %err%\err_%~1.log 1
-    call :del %tmp%\* 0
-    exit
-)
 exit /B 0
+
+
+
+
+
 
 :compile_dll
 ::objname params
-if not defined FORCECOMPILE ( if exist %bin%\%~1.dll (
+if not defined M_FORCE ( if exist %bin%\%~1.dll (
     echo skipped %~1.dll
     exit /B 0
 ))
 pushd src\%~1
-%GCC% -o %bin%\%~1.dll %~2 2> %err%\err_%~1.log
+%GCC% -o %bin%\%~1.dll %~2 %p% 2> %err%\err_%~1.log
 call :errcheck %~1
 call :del %err%\err_%~1.log 1
 call :del *.o 0
@@ -83,7 +79,7 @@ exit /B 0
 
 :compile_ar
 ::objname params
-if not defined FORCECOMPILE ( if exist %bin%\%~1.a (
+if not defined M_FORCE ( if exist %bin%\%~1.a (
     echo skipped %~1.a
     exit /B 0
 ))
@@ -98,6 +94,17 @@ call :del *.o 0
 
 echo compiled %~1
 popd
+exit /B 0
+
+:errcheck
+::objname
+if %errorlevel% neq 0 (
+    echo oops %~1!
+    pause
+    call :del %err%\err_%~1.log 1
+    call :del %tmp%\* 0
+    exit
+)
 exit /B 0
 
 :del
