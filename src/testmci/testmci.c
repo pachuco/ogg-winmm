@@ -26,7 +26,6 @@ int main(int argc, char* argv[]) {
     printf("Welcome to the MCI commandline.\n");
     printf("Type at your heart's content.\n");
     printf("Type \"exit\" to close MCI commandline.\n\n");
-    printf("Type \"exit\" to close MCI commandline.\n\n");
     while(TRUE) {
         printf("MCI>");
         size = _getline(comBuf, BUFSIZE, stdin);
