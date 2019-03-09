@@ -1,4 +1,6 @@
 bin/*.a
 bin/*.o
 bin/*.dll
+bin/*.exe
 err_*.log
+**.zip
