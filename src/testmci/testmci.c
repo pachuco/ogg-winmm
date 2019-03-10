@@ -29,6 +29,7 @@ int main(int argc, char* argv[]) {
     while(TRUE) {
         printf("MCI>");
         size = _getline(comBuf, BUFSIZE, stdin);
+        if (!strcmp(comBuf, "exit")) break;
         err = mciSendStringA(comBuf, retBuf, BUFSIZE, NULL);
         mciGetErrorString(err, errBuf, BUFSIZE);
         printf("ret|%s\n", retBuf);
