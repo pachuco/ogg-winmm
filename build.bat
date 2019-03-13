@@ -27,37 +27,31 @@ call :del %bin%\%l_winmm%.dll 0
 call :del %bin%\%l_testmci%.exe 0
 
 set name=%l_ogg%
-set opts=-m32 -std=gnu99 -O2 -shared -s
 set files=framing.c bitwise.c
-set incl=-I.
-call :compile_ar %name% "%files% %opts% %incl% %links%"
+set inclinks=-I.
+call :compile_ar %name% "%files% %inclinks% -m32 -std=gnu99 -O2 -shared -s"
 
 
 set name=%l_vorb%
-set opts=-m32 -std=gnu99 -O2 -s
 ::psytune.c tone.c barkmel.c
 set files=analysis.c bitrate.c block.c codebook.c envelope.c floor0.c floor1.c info.c lookup.c lpc.c lsp.c mapping0.c mdct.c psy.c registry.c res0.c sharedbook.c smallft.c synthesis.c vorbisenc.c vorbisfile.c window.c
 set files=%files% %bin%\%l_ogg%.a
-set incl=-I. -I..\%l_ogg%
-set links=
-call :compile_ar %name% "%files% %opts% %incl% %links%"
-
-%WINDRES% src\%l_winmm%\wav-winmm.rc -O coff -o %bin%\wav-winmm.o
-set name=%l_winmm%
-set opts=wav-winmm.def -m32 -std=gnu99 -Wl,--enable-stdcall-fixup -O2 -shared -s
-if defined M_DEBUG set opts=%opts% -D _DEBUG
-set files=player.c wav-winmm.c stubs.c cdplayer.c winmm_out.c
-set files=%files% %bin%\%l_vorb%.a %bin%\%l_ogg%.a %bin%\wav-winmm.o
-set incl=-I. -I..\%l_vorb% -I..\%l_ogg%
-set links=-lwinmm
-call :compile_bin %name% "%files% %opts% %incl% %links%" dll
+set inclinks=-I. -I..\%l_ogg%
+call :compile_ar %name% "%files% %inclinks% -m32 -std=gnu99 -O2 -shared -s"
 
 set name=%l_testmci%
-set opts=-mconsole -m32 -std=gnu99 -Wl,--enable-stdcall-fixup -O2 -s
 set files=testmci.c
-set incl=-I. -I..\%l_vorb% -I..\%l_ogg%
-set links=-lwinmm
-call :compile_bin %name% "%files% %opts% %incl% %links%" exe
+set inclinks=-lwinmm -I.
+call :compile_bin %name% "%files% %inclinks% -mconsole -m32 -std=gnu99 -Wl,--enable-stdcall-fixup -O2 -s" exe
+
+%WINDRES% src\%l_winmm%\wav-winmm.rc.in -O coff -o %bin%\wav-winmm-rc.o
+set name=%l_winmm%
+if defined M_DEBUG set o_dbg=%opts% -D _DEBUG
+set files=player.c wav-winmm.c stubs.c cdplayer.c wav-winmm.def
+set files=%files% sup\winmm_out.c sup\winfile.c sup\util.c
+set files=%files% %bin%\%l_vorb%.a %bin%\%l_ogg%.a %bin%\wav-winmm-rc.o
+set inclinks=-lwinmm -I. -I..\%l_vorb% -I..\%l_ogg%
+call :compile_bin %name% "%files% %inclinks% -m32 -std=gnu99 -Wl,--enable-stdcall-fixup -O2 -shared -s %o_dbg%" dll 
 
 echo .
 echo all done!

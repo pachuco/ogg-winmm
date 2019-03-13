@@ -18,16 +18,14 @@
 #include <stdio.h>
 #include <ctype.h>
 #include <dirent.h>
+
+#include "sup/util.h"
+#include "sup/winfile.h"
+#include "cdplayer.h"
 #include "player.h"
 
-#define MAGIC_DEVICEID 0xBEEF
+#define MAGIC_DEVICEID 0xCD00BEEF
 #define MAX_TRACKS 99
-
-#ifdef WIN32
-
-#define snprintf _snprintf
-
-#endif
 
 struct track_info {
     char path[MAX_PATH];    // full path to ogg
@@ -41,14 +39,6 @@ struct play_info {
     int first;
     int last;
 };
-
-
-#define DERROR(format, ...) {char zTemp[512]; snprintf(zTemp, 512, format, ##__VA_ARGS__); OutputDebugStringA(zTemp);}
-#ifdef _DEBUG
-#define DVERBOSE(format, ...) {char zTemp[512]; snprintf(zTemp, 512, format, ##__VA_ARGS__); OutputDebugStringA(zTemp);}
-#else 
-#define DVERBOSE(...)
-#endif
 
 int playing = 0;
 int updateTrack = 0;
@@ -108,11 +98,10 @@ int player_main() {
 
 BOOL WINAPI DllMain(HINSTANCE hinstDLL, DWORD fdwReason, LPVOID lpvReserved) {
     if (fdwReason == DLL_PROCESS_ATTACH) {
+        //fprx_init();
+        //printf("CDPlayer init status: %d\n", cdplayer_init());
         GetModuleFileName(hinstDLL, music_path, sizeof music_path);
-
         memset(tracks, 0, sizeof tracks);
-
-        InitializeCriticalSection(&cs);
 
         char *last = strrchr(music_path, '\\');
         if (last) *last = '\0';
@@ -142,6 +131,8 @@ BOOL WINAPI DllMain(HINSTANCE hinstDLL, DWORD fdwReason, LPVOID lpvReserved) {
         }
 
         DVERBOSE("Emulating total of %d CD tracks.\r\n\r\n", numTracks);
+    } else if (fdwReason == DLL_PROCESS_DETACH) {
+        
     }
 
     return TRUE;
