@@ -8,7 +8,7 @@ Collected behaviour from prodding mciSendString with a stick:
 - Playback cannot start earlier than 2s.
 - If told to PLAY from time longer than total time of tracks, it will jump to begining of last track.
 - PLAY pairs with STOP, RESUME with PAUSE. Cannot be mixed.
-- Case insensitive parser.
+- The parser is case insensitive.
 
 What ECMA-130(RedBook) standard says:
 - The minimum addressable unit is the frame(called sector in the doc).
@@ -19,6 +19,10 @@ What ECMA-130(RedBook) standard says:
 - Postgap is at least 2s.
 - There are 3 areas: Lead-in, User Area, Lead-out.
 - TODO...
+
+Other things:
+- Apparently, win95-era games did stupid things(like states shared between threads) with then-nonfunctional various parts of the API. Watch out for RESUME.
+
 Questions
 - Do data tracks in the middle of CD affect total track count? What about playback times of tracks after?
 
@@ -28,6 +32,7 @@ Questions
 
 symbol list:
 * supported, we handle
+! supported, special case
 > forward to real MCI
 
 List of MCI commands we support:
@@ -35,8 +40,9 @@ List of MCI commands we support:
 *CLOSE
 *INFO
 *OPEN
+*PAUSE
 *PLAY
-*RESUME         //SPECIAL CASE!!!
+!RESUME         
 *SEEK
 *SET
 *STATUS
@@ -53,13 +59,12 @@ List of commands that get forwarded to real MCI
 >DELETE
 >ESCAPE
 >FREEZE
-???????????INDEX
+>INDEX
 >LIST
 >LOAD
 >MARK
 >MONITOR
 >PASTE
-*PAUSE
 >PUT
 >QUALITY
 >REALIZE

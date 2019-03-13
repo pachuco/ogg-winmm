@@ -4,3 +4,4 @@ bin/*.dll
 bin/*.exe
 err_*.log
 **.zip
+**.ogg
