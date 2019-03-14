@@ -1,179 +1,241 @@
 LIBRARY winmm.dll
 
 EXPORTS
-    auxGetVolume                     = fake_auxGetVolume
-    auxSetVolume                     = fake_auxSetVolume
-    auxGetDevCapsA                   = fake_auxGetDevCapsA
-    auxGetNumDevs                    = fake_auxGetNumDevs
-    mciSendCommandA                  = fake_mciSendCommandA
-    mciSendStringA                   = fake_mciSendStringA
+    auxGetVolume    = fake_auxGetVolume
+    auxSetVolume    = fake_auxSetVolume
+    auxGetDevCapsA  = fake_auxGetDevCapsA
+auxGetDevCapsW = stub_auxGetDevCapsW
+    auxGetNumDevs   = fake_auxGetNumDevs
+mciExecute = stub_mciExecute
+    mciSendCommandA = fake_mciSendCommandA
+mciSendCommandW = stub_mciSendCommandW
+    mciSendStringA  = fake_mciSendStringA
+mciSendStringW = stub_mciSendStringW
     
-    auxGetDevCapsW                   = fake_auxGetDevCapsW
-    auxOutMessage                    = fake_auxOutMessage
-    CloseDriver                      = fake_CloseDriver
-    DefDriverProc                    = fake_DefDriverProc
-    DriverCallback                   = fake_DriverCallback
-    DrvGetModuleHandle               = fake_DrvGetModuleHandle
-    GetDriverModuleHandle            = fake_GetDriverModuleHandle
-    joyConfigChanged                 = fake_joyConfigChanged
-    joyGetDevCapsA                   = fake_joyGetDevCapsA
-    joyGetDevCapsW                   = fake_joyGetDevCapsW
-    joyGetNumDevs                    = fake_joyGetNumDevs
-    joyGetPos                        = fake_joyGetPos
-    joyGetPosEx                      = fake_joyGetPosEx
-    joyGetThreshold                  = fake_joyGetThreshold
-    joyReleaseCapture                = fake_joyReleaseCapture
-    joySetCapture                    = fake_joySetCapture
-    joySetThreshold                  = fake_joySetThreshold
-    mciExecute                       = fake_mciExecute
-    mciFreeCommandResource           = fake_mciFreeCommandResource
-    mciGetCreatorTask                = fake_mciGetCreatorTask
-    mciGetDeviceIDA                  = fake_mciGetDeviceIDA
-    mciGetDeviceIDFromElementIDA     = fake_mciGetDeviceIDFromElementIDA
-    mciGetDeviceIDFromElementIDW     = fake_mciGetDeviceIDFromElementIDW
-    mciGetDeviceIDW                  = fake_mciGetDeviceIDW
-    mciGetErrorStringA               = fake_mciGetErrorStringA
-    mciGetErrorStringW               = fake_mciGetErrorStringW
-    mciGetYieldProc                  = fake_mciGetYieldProc
-    mciLoadCommandResource           = fake_mciLoadCommandResource
-    mciSendCommandW                  = fake_mciSendCommandW
-    mciSendStringW                   = fake_mciSendStringW
-    mciSetYieldProc                  = fake_mciSetYieldProc
-    midiConnect                      = fake_midiConnect
-    midiDisconnect                   = fake_midiDisconnect
-    midiInAddBuffer                  = fake_midiInAddBuffer
-    midiInClose                      = fake_midiInClose
-    midiInGetDevCapsA                = fake_midiInGetDevCapsA
-    midiInGetDevCapsW                = fake_midiInGetDevCapsW
-    midiInGetErrorTextA              = fake_midiInGetErrorTextA
-    midiInGetErrorTextW              = fake_midiInGetErrorTextW
-    midiInGetID                      = fake_midiInGetID
-    midiInGetNumDevs                 = fake_midiInGetNumDevs
-    midiInMessage                    = fake_midiInMessage
-    midiInOpen                       = fake_midiInOpen
-    midiInPrepareHeader              = fake_midiInPrepareHeader
-    midiInReset                      = fake_midiInReset
-    midiInStart                      = fake_midiInStart
-    midiInStop                       = fake_midiInStop
-    midiInUnprepareHeader            = fake_midiInUnprepareHeader
-    midiOutCacheDrumPatches          = fake_midiOutCacheDrumPatches
-    midiOutCachePatches              = fake_midiOutCachePatches
-    midiOutClose                     = fake_midiOutClose
-    midiOutGetDevCapsA               = fake_midiOutGetDevCapsA
-    midiOutGetDevCapsW               = fake_midiOutGetDevCapsW
-    midiOutGetErrorTextA             = fake_midiOutGetErrorTextA
-    midiOutGetErrorTextW             = fake_midiOutGetErrorTextW
-    midiOutGetID                     = fake_midiOutGetID
-    midiOutGetNumDevs                = fake_midiOutGetNumDevs
-    midiOutGetVolume                 = fake_midiOutGetVolume
-    midiOutLongMsg                   = fake_midiOutLongMsg
-    midiOutMessage                   = fake_midiOutMessage
-    midiOutOpen                      = fake_midiOutOpen
-    midiOutPrepareHeader             = fake_midiOutPrepareHeader
-    midiOutReset                     = fake_midiOutReset
-    midiOutSetVolume                 = fake_midiOutSetVolume
-    midiOutShortMsg                  = fake_midiOutShortMsg
-    midiOutUnprepareHeader           = fake_midiOutUnprepareHeader
-    midiStreamClose                  = fake_midiStreamClose
-    midiStreamOpen                   = fake_midiStreamOpen
-    midiStreamOut                    = fake_midiStreamOut
-    midiStreamPause                  = fake_midiStreamPause
-    midiStreamPosition               = fake_midiStreamPosition
-    midiStreamProperty               = fake_midiStreamProperty
-    midiStreamRestart                = fake_midiStreamRestart
-    midiStreamStop                   = fake_midiStreamStop
-    mixerClose                       = fake_mixerClose
-    mixerGetControlDetailsA          = fake_mixerGetControlDetailsA
-    mixerGetControlDetailsW          = fake_mixerGetControlDetailsW
-    mixerGetDevCapsA                 = fake_mixerGetDevCapsA
-    mixerGetDevCapsW                 = fake_mixerGetDevCapsW
-    mixerGetID                       = fake_mixerGetID
-    mixerGetLineControlsA            = fake_mixerGetLineControlsA
-    mixerGetLineControlsW            = fake_mixerGetLineControlsW
-    mixerGetLineInfoA                = fake_mixerGetLineInfoA
-    mixerGetLineInfoW                = fake_mixerGetLineInfoW
-    mixerGetNumDevs                  = fake_mixerGetNumDevs
-    mixerMessage                     = fake_mixerMessage
-    mixerOpen                        = fake_mixerOpen
-    mixerSetControlDetails           = fake_mixerSetControlDetails
-    mmGetCurrentTask                 = fake_mmGetCurrentTask
-    mmTaskBlock                      = fake_mmTaskBlock
-    mmTaskCreate                     = fake_mmTaskCreate
-    mmTaskSignal                     = fake_mmTaskSignal
-    mmTaskYield                      = fake_mmTaskYield
-    mmioAdvance                      = fake_mmioAdvance
-    mmioAscend                       = fake_mmioAscend
-    mmioClose                        = fake_mmioClose
-    mmioCreateChunk                  = fake_mmioCreateChunk
-    mmioDescend                      = fake_mmioDescend
-    mmioFlush                        = fake_mmioFlush
-    mmioGetInfo                      = fake_mmioGetInfo
-    mmioInstallIOProcA               = fake_mmioInstallIOProcA
-    mmioInstallIOProcW               = fake_mmioInstallIOProcW
-    mmioOpenA                        = fake_mmioOpenA
-    mmioOpenW                        = fake_mmioOpenW
-    mmioRead                         = fake_mmioRead
-    mmioRenameA                      = fake_mmioRenameA
-    mmioRenameW                      = fake_mmioRenameW
-    mmioSeek                         = fake_mmioSeek
-    mmioSendMessage                  = fake_mmioSendMessage
-    mmioSetBuffer                    = fake_mmioSetBuffer
-    mmioSetInfo                      = fake_mmioSetInfo
-    mmioStringToFOURCCA              = fake_mmioStringToFOURCCA
-    mmioStringToFOURCCW              = fake_mmioStringToFOURCCW
-    mmioWrite                        = fake_mmioWrite
-    mmsystemGetVersion               = fake_mmsystemGetVersion
-    NotifyCallbackData               = fake_NotifyCallbackData
-    OpenDriver                       = fake_OpenDriver
-    PlaySound                        = fake_PlaySound
-    PlaySoundA                       = fake_PlaySoundA
-    PlaySoundW                       = fake_PlaySoundW
-    SendDriverMessage                = fake_SendDriverMessage
-    sndPlaySoundA                    = fake_sndPlaySoundA
-    sndPlaySoundW                    = fake_sndPlaySoundW
-    timeBeginPeriod                  = fake_timeBeginPeriod
-    timeEndPeriod                    = fake_timeEndPeriod
-    timeGetDevCaps                   = fake_timeGetDevCaps
-    timeGetSystemTime                = fake_timeGetSystemTime
-    timeGetTime                      = fake_timeGetTime
-    timeKillEvent                    = fake_timeKillEvent
-    timeSetEvent                     = fake_timeSetEvent
-    waveInAddBuffer                  = fake_waveInAddBuffer
-    waveInClose                      = fake_waveInClose
-    waveInGetDevCapsA                = fake_waveInGetDevCapsA
-    waveInGetDevCapsW                = fake_waveInGetDevCapsW
-    waveInGetErrorTextA              = fake_waveInGetErrorTextA
-    waveInGetErrorTextW              = fake_waveInGetErrorTextW
-    waveInGetID                      = fake_waveInGetID
-    waveInGetNumDevs                 = fake_waveInGetNumDevs
-    waveInGetPosition                = fake_waveInGetPosition
-    waveInMessage                    = fake_waveInMessage
-    waveInOpen                       = fake_waveInOpen
-    waveInPrepareHeader              = fake_waveInPrepareHeader
-    waveInReset                      = fake_waveInReset
-    waveInStart                      = fake_waveInStart
-    waveInStop                       = fake_waveInStop
-    waveInUnprepareHeader            = fake_waveInUnprepareHeader
-    waveOutBreakLoop                 = fake_waveOutBreakLoop
-    waveOutClose                     = fake_waveOutClose
-    waveOutGetDevCapsA               = fake_waveOutGetDevCapsA
-    waveOutGetDevCapsW               = fake_waveOutGetDevCapsW
-    waveOutGetErrorTextA             = fake_waveOutGetErrorTextA
-    waveOutGetErrorTextW             = fake_waveOutGetErrorTextW
-    waveOutGetID                     = fake_waveOutGetID
-    waveOutGetNumDevs                = fake_waveOutGetNumDevs
-    waveOutGetPitch                  = fake_waveOutGetPitch
-    waveOutGetPlaybackRate           = fake_waveOutGetPlaybackRate
-    waveOutGetPosition               = fake_waveOutGetPosition
-    waveOutGetVolume                 = fake_waveOutGetVolume
-    waveOutMessage                   = fake_waveOutMessage
-    waveOutOpen                      = fake_waveOutOpen
-    waveOutPause                     = fake_waveOutPause
-    waveOutPrepareHeader             = fake_waveOutPrepareHeader
-    waveOutReset                     = fake_waveOutReset
-    waveOutRestart                   = fake_waveOutRestart
-    waveOutSetPitch                  = fake_waveOutSetPitch
-    waveOutSetPlaybackRate           = fake_waveOutSetPlaybackRate
-    waveOutSetVolume                 = fake_waveOutSetVolume
-    waveOutUnprepareHeader           = fake_waveOutUnprepareHeader
-    waveOutWrite                     = fake_waveOutWrite
+;extra exports that never made it across the years
+;keep them here just in case
+;--------------Windows XP
+;gfxAddGfx
+;gfxBatchChange
+;gfxCreateGfxFactoriesList
+;gfxCreateZoneFactoriesList
+;gfxDestroyDeviceInterfaceList
+;gfxEnumerateGfxs
+;_gfxLogoff@0
+;_gfxLogon@4
+;gfxModifyGfx
+;gfxOpenGfx
+;gfxRemoveGfx
+;MigrateAllDrivers
+;MigrateSoundEvents
+;winmmDbgOut
+;WinmmLogoff
+;WinmmLogon
+;winmmSetDebugLevel
+;--------------Windows 2000
+;MigrateMidiUser
+;--------------Windows 98
+;DrvClose
+;DrvDefDriverProc
+;DrvOpen
+;DrvOpenA
+;DrvSendMessage
+;GetDriverFlags
+;mmioInstallIOProc16
+;OpenDriverA
+;winmmf_ThunkData32
+;winmmsl_ThunkData32
+;--------------
+
+aux32Message = stub_aux32Message
+;auxGetDevCapsA
+;auxGetDevCapsW
+auxGetNumDevs = stub_auxGetNumDevs
+;auxGetVolume
+auxOutMessage = stub_auxOutMessage
+;auxSetVolume
+CloseDriver = stub_CloseDriver
+DefDriverProc = stub_DefDriverProc
+DriverCallback = stub_DriverCallback
+DrvGetModuleHandle = stub_DrvGetModuleHandle
+GetDriverModuleHandle = stub_GetDriverModuleHandle
+joy32Message = stub_joy32Message
+joyConfigChanged = stub_joyConfigChanged
+joyGetDevCapsA = stub_joyGetDevCapsA
+joyGetDevCapsW = stub_joyGetDevCapsW
+joyGetNumDevs = stub_joyGetNumDevs
+joyGetPos = stub_joyGetPos
+joyGetPosEx = stub_joyGetPosEx
+joyGetThreshold = stub_joyGetThreshold
+joyReleaseCapture = stub_joyReleaseCapture
+joySetCapture = stub_joySetCapture
+joySetThreshold = stub_joySetThreshold
+mci32Message = stub_mci32Message
+mciDriverNotify = stub_mciDriverNotify
+mciDriverYield = stub_mciDriverYield
+;mciExecute
+mciFreeCommandResource = stub_mciFreeCommandResource
+mciGetCreatorTask = stub_mciGetCreatorTask
+mciGetDeviceIDA = stub_mciGetDeviceIDA
+mciGetDeviceIDFromElementIDA = stub_mciGetDeviceIDFromElementIDA
+mciGetDeviceIDFromElementIDW = stub_mciGetDeviceIDFromElementIDW
+mciGetDeviceIDW = stub_mciGetDeviceIDW
+mciGetDriverData = stub_mciGetDriverData
+mciGetErrorStringA = stub_mciGetErrorStringA
+mciGetErrorStringW = stub_mciGetErrorStringW
+mciGetYieldProc = stub_mciGetYieldProc
+mciLoadCommandResource = stub_mciLoadCommandResource
+;mciSendCommandA
+;mciSendCommandW
+;mciSendStringA
+;mciSendStringW
+mciSetDriverData = stub_mciSetDriverData
+mciSetYieldProc = stub_mciSetYieldProc
+mid32Message = stub_mid32Message
+midiConnect = stub_midiConnect
+midiDisconnect = stub_midiDisconnect
+midiInAddBuffer = stub_midiInAddBuffer
+midiInClose = stub_midiInClose
+midiInGetDevCapsA = stub_midiInGetDevCapsA
+midiInGetDevCapsW = stub_midiInGetDevCapsW
+midiInGetErrorTextA = stub_midiInGetErrorTextA
+midiInGetErrorTextW = stub_midiInGetErrorTextW
+midiInGetID = stub_midiInGetID
+midiInGetNumDevs = stub_midiInGetNumDevs
+midiInMessage = stub_midiInMessage
+midiInOpen = stub_midiInOpen
+midiInPrepareHeader = stub_midiInPrepareHeader
+midiInReset = stub_midiInReset
+midiInStart = stub_midiInStart
+midiInStop = stub_midiInStop
+midiInUnprepareHeader = stub_midiInUnprepareHeader
+midiOutCacheDrumPatches = stub_midiOutCacheDrumPatches
+midiOutCachePatches = stub_midiOutCachePatches
+midiOutClose = stub_midiOutClose
+midiOutGetDevCapsA = stub_midiOutGetDevCapsA
+midiOutGetDevCapsW = stub_midiOutGetDevCapsW
+midiOutGetErrorTextA = stub_midiOutGetErrorTextA
+midiOutGetErrorTextW = stub_midiOutGetErrorTextW
+midiOutGetID = stub_midiOutGetID
+midiOutGetNumDevs = stub_midiOutGetNumDevs
+midiOutGetVolume = stub_midiOutGetVolume
+midiOutLongMsg = stub_midiOutLongMsg
+midiOutMessage = stub_midiOutMessage
+midiOutOpen = stub_midiOutOpen
+midiOutPrepareHeader = stub_midiOutPrepareHeader
+midiOutReset = stub_midiOutReset
+midiOutSetVolume = stub_midiOutSetVolume
+midiOutShortMsg = stub_midiOutShortMsg
+midiOutUnprepareHeader = stub_midiOutUnprepareHeader
+midiStreamClose = stub_midiStreamClose
+midiStreamOpen = stub_midiStreamOpen
+midiStreamOut = stub_midiStreamOut
+midiStreamPause = stub_midiStreamPause
+midiStreamPosition = stub_midiStreamPosition
+midiStreamProperty = stub_midiStreamProperty
+midiStreamRestart = stub_midiStreamRestart
+midiStreamStop = stub_midiStreamStop
+mixerClose = stub_mixerClose
+mixerGetControlDetailsA = stub_mixerGetControlDetailsA
+mixerGetControlDetailsW = stub_mixerGetControlDetailsW
+mixerGetDevCapsA = stub_mixerGetDevCapsA
+mixerGetDevCapsW = stub_mixerGetDevCapsW
+mixerGetID = stub_mixerGetID
+mixerGetLineControlsA = stub_mixerGetLineControlsA
+mixerGetLineControlsW = stub_mixerGetLineControlsW
+mixerGetLineInfoA = stub_mixerGetLineInfoA
+mixerGetLineInfoW = stub_mixerGetLineInfoW
+mixerGetNumDevs = stub_mixerGetNumDevs
+mixerMessage = stub_mixerMessage
+mixerOpen = stub_mixerOpen
+mixerSetControlDetails = stub_mixerSetControlDetails
+mmDrvInstall = stub_mmDrvInstall
+mmGetCurrentTask = stub_mmGetCurrentTask
+mmioAdvance = stub_mmioAdvance
+mmioAscend = stub_mmioAscend
+mmioClose = stub_mmioClose
+mmioCreateChunk = stub_mmioCreateChunk
+mmioDescend = stub_mmioDescend
+mmioFlush = stub_mmioFlush
+mmioGetInfo = stub_mmioGetInfo
+mmioInstallIOProcA = stub_mmioInstallIOProcA
+mmioInstallIOProcW = stub_mmioInstallIOProcW
+mmioOpenA = stub_mmioOpenA
+mmioOpenW = stub_mmioOpenW
+mmioRead = stub_mmioRead
+mmioRenameA = stub_mmioRenameA
+mmioRenameW = stub_mmioRenameW
+mmioSeek = stub_mmioSeek
+mmioSendMessage = stub_mmioSendMessage
+mmioSetBuffer = stub_mmioSetBuffer
+mmioSetInfo = stub_mmioSetInfo
+mmioStringToFOURCCA = stub_mmioStringToFOURCCA
+mmioStringToFOURCCW = stub_mmioStringToFOURCCW
+mmioWrite = stub_mmioWrite
+mmsystemGetVersion = stub_mmsystemGetVersion
+mmTaskBlock = stub_mmTaskBlock
+mmTaskCreate = stub_mmTaskCreate
+mmTaskSignal = stub_mmTaskSignal
+mmTaskYield = stub_mmTaskYield
+mod32Message = stub_mod32Message
+mxd32Message = stub_mxd32Message
+NotifyCallbackData = stub_NotifyCallbackData
+OpenDriver = stub_OpenDriver
+PlaySound = stub_PlaySound
+PlaySoundA = stub_PlaySoundA
+PlaySoundW = stub_PlaySoundW
+SendDriverMessage = stub_SendDriverMessage
+sndPlaySoundA = stub_sndPlaySoundA
+sndPlaySoundW = stub_sndPlaySoundW
+tid32Message = stub_tid32Message
+timeBeginPeriod = stub_timeBeginPeriod
+timeEndPeriod = stub_timeEndPeriod
+timeGetDevCaps = stub_timeGetDevCaps
+timeGetSystemTime = stub_timeGetSystemTime
+timeGetTime = stub_timeGetTime
+timeKillEvent = stub_timeKillEvent
+timeSetEvent = stub_timeSetEvent
+waveInAddBuffer = stub_waveInAddBuffer
+waveInClose = stub_waveInClose
+waveInGetDevCapsA = stub_waveInGetDevCapsA
+waveInGetDevCapsW = stub_waveInGetDevCapsW
+waveInGetErrorTextA = stub_waveInGetErrorTextA
+waveInGetErrorTextW = stub_waveInGetErrorTextW
+waveInGetID = stub_waveInGetID
+waveInGetNumDevs = stub_waveInGetNumDevs
+waveInGetPosition = stub_waveInGetPosition
+waveInMessage = stub_waveInMessage
+waveInOpen = stub_waveInOpen
+waveInPrepareHeader = stub_waveInPrepareHeader
+waveInReset = stub_waveInReset
+waveInStart = stub_waveInStart
+waveInStop = stub_waveInStop
+waveInUnprepareHeader = stub_waveInUnprepareHeader
+waveOutBreakLoop = stub_waveOutBreakLoop
+waveOutClose = stub_waveOutClose
+waveOutGetDevCapsA = stub_waveOutGetDevCapsA
+waveOutGetDevCapsW = stub_waveOutGetDevCapsW
+waveOutGetErrorTextA = stub_waveOutGetErrorTextA
+waveOutGetErrorTextW = stub_waveOutGetErrorTextW
+waveOutGetID = stub_waveOutGetID
+waveOutGetNumDevs = stub_waveOutGetNumDevs
+waveOutGetPitch = stub_waveOutGetPitch
+waveOutGetPlaybackRate = stub_waveOutGetPlaybackRate
+waveOutGetPosition = stub_waveOutGetPosition
+waveOutGetVolume = stub_waveOutGetVolume
+waveOutMessage = stub_waveOutMessage
+waveOutOpen = stub_waveOutOpen
+waveOutPause = stub_waveOutPause
+waveOutPrepareHeader = stub_waveOutPrepareHeader
+waveOutReset = stub_waveOutReset
+waveOutRestart = stub_waveOutRestart
+waveOutSetPitch = stub_waveOutSetPitch
+waveOutSetPlaybackRate = stub_waveOutSetPlaybackRate
+waveOutSetVolume = stub_waveOutSetVolume
+waveOutUnprepareHeader = stub_waveOutUnprepareHeader
+waveOutWrite = stub_waveOutWrite
+wid32Message = stub_wid32Message
+wod32Message = stub_wod32Message
+WOW32DriverCallback = stub_WOW32DriverCallback
+WOW32ResolveMultiMediaHandle = stub_WOW32ResolveMultiMediaHandle
+WOWAppExit = stub_WOWAppExit

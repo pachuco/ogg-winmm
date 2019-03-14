@@ -28,12 +28,13 @@ char _errbuf[MAXERRBUF];
 char* ub10FromStr(uint32_t* dest, char* src, int max);
 //char* ib10ToStr(char* dest, int32_t  num, int size, BOOL isZPad);
 char* ub10ToStr(char* dest, uint32_t num, int size, BOOL isZPad);
-BOOL fnMatchesTemplate(LPCSTR src, LPCSTR templ);
 LPSTR  fnGetParentA(LPSTR  path);
 LPWSTR fnGetParentW(LPWSTR path);
-LPSTR  writeStrA2A(LPSTR dest,  LPCSTR src, int max);
-LPSTR  writeStrW2A(LPSTR dest, LPCWSTR src, int max);
-LPWSTR writeStrA2W(LPWSTR dest, LPCSTR src, int max);
+LPSTR  strWriteA2A(LPSTR dest,  LPCSTR src, int max);
+LPSTR  strWriteW2A(LPSTR dest, LPCWSTR src, int max);
+LPWSTR strWriteA2W(LPWSTR dest, LPCSTR src, int max);
+//BOOL   strtokMatchTemplA(LPCSTR src, LPCSTR templ, CHAR magic);
+LPSTR strtokWalkA(LPCSTR src, LPCSTR token);
 //void concatStrA2A(LPSTR dest, LPCSTR src, int max);
 
 

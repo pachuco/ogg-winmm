@@ -12,8 +12,9 @@
 #define MAX_TRACKS 99
 #define FRAMES_PER_SECOND 75
 #define SAMPLES_PER_FRAME 588
-#define PTH_MUSFOLDER  "\\music"
-#define PTH_SONGFORMAT PTH_MUSFOLDER "\\track??.ogg"
+
+#define CDMUSICBASE "\\music"
+#define MAXINIBUF 3072
 
 static WinmmFormat wf = {44100, 2, 16, SAMPLES_PER_FRAME, 8};//render one CD frame at a time
 static OggVorbis_File vf;
@@ -27,7 +28,7 @@ typedef struct Track {
     uint8_t  flags;         //track property bitfield
 } Track;
 
-Track tracks[MAX_TRACKS];
+Track cdtracks[MAX_TRACKS];
 static uint8_t maxTrackNr;
 
 static BOOL    isPlaying;
@@ -101,9 +102,7 @@ void cdplayer_play(DWORD_PTR cmd, DWORD format, DWORD from, DWORD to) {
 }
 
 void cdplayer_stop() {
-    winmmout_enterCrit();
     isPlaying = TRUE;
-    winmmout_leaveCrit();
 }
 
 
@@ -115,62 +114,100 @@ CDP_ERR cdplayer_init() {
     CDP_ERR err;
     
     isPlaying = FALSE;
-    //if (!winmmout_openMixer(&wf, &audioCB)) FAIL(CDPE_DEVICE); //why does this lock up?
+    //if (!winmmout_openMixer(&wf, &audioCB)) FAIL(CDPE_DEVICE); //this locks up
     
     for (int i=0; i<MAX_TRACKS; i++) {
-        tracks[i].frameOff = 0;
-        tracks[i].frameLen = 0;
-        tracks[i].flags  = 0;
+        cdtracks[i].frameOff = 0;
+        cdtracks[i].frameLen = 0;
+        cdtracks[i].flags  = 0;
     }
     maxTrackNr = 1;
     gapFrameCount = 2 * MAX_TRACKS;
     trkCurrent = 0;
     
     //check if folder is there
-    hFind = fprx_FindFirstFileA(PTH_MUSFOLDER, &ffd);
+    hFind = fprx_FindFirstFileA(CDMUSICBASE, &ffd);
     if (hFind != INVALID_HANDLE_VALUE) {
         FindClose(hFind);
     } else FAIL(CDPE_NOMEDIA);
     
+    //load ini with songlength infos, if available
+    static char pathInfoIni[] = CDMUSICBASE "\\cdinfo.ini";
+    hFind = fprx_FindFirstFileA(pathInfoIni, &ffd);
+    if (hFind != INVALID_HANDLE_VALUE) {
+        char  iniBuf[MAXINIBUF];
+        char* rp = iniBuf;
+        
+        fprx_GetPrivateProfileSectionA("cdinfo", iniBuf, MAXINIBUF, pathInfoIni);
+        while (rp[0]!='\0') {
+            char* rp2 = rp;
+            int   len = lstrlenA(rp2);
+            int trk, mm, ss, ff;
+            
+            //trackXX=MM:SS:FF
+            if (!(rp2 = strtokWalkA(rp2, "track"))) continue;
+            if (!(rp2 = ub10FromStr(&trk, rp2, 2))) continue;
+            if (!(rp2 = strtokWalkA(rp2, "="))) continue;
+            if (!(rp2 = ub10FromStr(&mm,  rp2, 2))) continue;
+            if (!(rp2 = strtokWalkA(rp2, ":"))) continue;
+            if (!(rp2 = ub10FromStr(&ss,  rp2, 2))) continue;
+            if (!(rp2 = strtokWalkA(rp2, ":"))) continue;
+            if (!(rp2 = ub10FromStr(&ff,  rp2, 2))) continue;
+            rp += len;
+            rp++; //end of string series is double-NUL terminated
+            
+            cdtracks[trk].frameLen = mm*60*FRAMES_PER_SECOND + ss*FRAMES_PER_SECOND + ff;
+        }
+        
+        FindClose(hFind);
+    }
+    
     //get audio files
-    hFind = fprx_FindFirstFileA(PTH_SONGFORMAT, &ffd);
+    static char pathTrackModel[] = CDMUSICBASE "\\track??.ogg";
+    hFind = fprx_FindFirstFileA(pathTrackModel, &ffd);
     if (hFind != INVALID_HANDLE_VALUE) { //if folder is not there, we have a CD with no tracks.
         do {
             HANDLE hFile;
             uint32_t tnum;
-            char oggName[] = PTH_SONGFORMAT;
             
             if (ffd.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) continue;
             if (!ub10FromStr(&tnum, ffd.cFileName + 5, 2)) continue;
             if (tnum == 0) continue; //track 00 is not valid
             
-            ub10ToStr(oggName+12, tnum, 2, TRUE);
-            hFile = OPENFILEWITHFAVPARAMS(oggName);
-            
+            ub10ToStr(pathTrackModel+12, tnum, 2, TRUE);
+            hFile = OPENFILEWITHFAVPARAMS(pathTrackModel);
             if (hFile == INVALID_HANDLE_VALUE) continue;
-            if (ov_test_callbacks(hFile, &vf, NULL, 0, ovCB)) continue;
+            if (ov_open_callbacks(hFile, &vf, NULL, 0, ovCB)) continue;
             
             vorbis_info *vi = ov_info(&vf, -1);
+            //lengths from ini file override ogg lengths
             if (vi && vi->channels == 2 && vi->rate == 44100) {
                 ogg_int64_t lenRaw = ov_pcm_total(&vf, -1);
                 if (lenRaw != OV_EINVAL && lenRaw <= UINT32_MAX) {
                     DWORD smpLen = lenRaw;
-                    tracks[tnum].frameLen  = smpLen / SAMPLES_PER_FRAME + (smpLen%SAMPLES_PER_FRAME > 0 ? 1 : 0); //CD audio is always aligned to frames
-                    tracks[tnum].flags    |= CDPF_ISAUDIO;
-                    if (tnum > maxTrackNr) maxTrackNr = tnum;
-                    printf("%d\n", tracks[tnum].frameLen);
+                    if (cdtracks[tnum].frameLen == 0) { //ini override
+                        //CD audio is always aligned to frames
+                        cdtracks[tnum].frameLen  = smpLen / SAMPLES_PER_FRAME + (smpLen%SAMPLES_PER_FRAME > 0 ? 1 : 0);
+                        cdtracks[tnum].flags    |= CDPF_ISAUDIO;
+                        if (tnum > maxTrackNr) maxTrackNr = tnum;
+                    }
+                    printf("%d\n", cdtracks[tnum].frameLen);
+                } else {
+                    cdtracks[tnum].flags &= ~CDPF_ISAUDIO; //clear flag
                 }
+            } else {
+                cdtracks[tnum].flags &= ~CDPF_ISAUDIO; //clear flag
             }
             ov_clear(&vf);
             
-        } while (FindNextFile(hFind, &ffd) != 0);
+        } while (fprx_FindNextFileA(hFind, &ffd) != 0);
         //if (GetLastError() != ERROR_NO_MORE_FILES)
         FindClose(hFind);
     }
     
     //process offsets
     for (int i=0; i <= maxTrackNr; i++) {
-        Track* t = &tracks[i];
+        Track* t = &cdtracks[i];
     }
     
     return CDPE_OK;

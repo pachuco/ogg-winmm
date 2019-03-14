@@ -112,20 +112,6 @@ LPSTR ub10ToStr(LPSTR dest, uint32_t num, int size, BOOL isZPad) {
     #undef BS
 }
 
-
-BOOL fnMatchesTemplate(LPCSTR src, LPCSTR templ) {
-    int len = lstrlenA(src);
-    
-    if (len > lstrlenA(templ)) return FALSE;
-    
-    for (int i=0; i<len; i++) {
-        CHAR s=src[i], t=templ[i];
-        if (t == '?') continue;
-        if (s != t) return FALSE;
-    }
-    return TRUE;
-}
-
 LPSTR fnGetParentA(LPSTR path) {
     int len = lstrlenA(path);
     int i;
@@ -134,7 +120,7 @@ LPSTR fnGetParentA(LPSTR path) {
         if (path[i] == '\\' || path[i] == '/') break;
     }
     path[i] = '\0';
-    return path+len;
+    return path+i;
 }
 
 LPWSTR fnGetParentW(LPWSTR path) {
@@ -145,10 +131,10 @@ LPWSTR fnGetParentW(LPWSTR path) {
         if (path[i] == '\\' || path[i] == '/') break;
     }
     path[i] = '\0';
-    return path+len;
+    return path+i;
 }
 
-LPSTR writeStrA2A(LPSTR dest, LPCSTR src, int max) {
+LPSTR strWriteA2A(LPSTR dest, LPCSTR src, int max) {
     int altMax = lstrlenA(src)+1;
     
     max = MIN(max, altMax);
@@ -157,7 +143,7 @@ LPSTR writeStrA2A(LPSTR dest, LPCSTR src, int max) {
     return dest+max-1;
 }
 
-LPSTR writeStrW2A(LPSTR dest, LPCWSTR src, int max) {
+LPSTR strWriteW2A(LPSTR dest, LPCWSTR src, int max) {
     int i;
     int altMax = lstrlenW(src)+1;
         
@@ -169,7 +155,7 @@ LPSTR writeStrW2A(LPSTR dest, LPCWSTR src, int max) {
     return dest+max-1;
 }
 
-LPWSTR writeStrA2W(LPWSTR dest, LPCSTR src, int max) {
+LPWSTR strWriteA2W(LPWSTR dest, LPCSTR src, int max) {
     int i;
     int altMax = lstrlenA(src)+1;
         
@@ -179,6 +165,33 @@ LPWSTR writeStrA2W(LPWSTR dest, LPCSTR src, int max) {
     }
     dest[max-1] = L'\0';
     return dest+max-1;
+}
+
+/*BOOL strtokMatchTemplA(LPCSTR src, LPCSTR templ, CHAR magic) {
+    int len = lstrlenA(src);
+    
+    if (len > lstrlenA(templ)) return FALSE;
+    for (int i=0; i<len; i++) {
+        CHAR s=src[i], t=templ[i];
+        if (t == magic) continue;
+        if (s != t) return FALSE;
+    }
+    return TRUE;
+}*/
+
+LPSTR strtokWalkA(LPCSTR src, LPCSTR token) {
+    int ls = lstrlenA(src);
+    int lt = lstrlenA(token);
+    int max, i=0, i2=0;
+    
+    if (lt > ls) return NULL;
+    max = ls;
+    while (src[i] == ' ') i++;
+    if (src[i] == token[0]) max = i + lt;
+    for (; i < max; i++, i2++) {
+        if (src[i] != token[i2]) return NULL;
+    }
+    return src+i+1;
 }
 
 /*void concatStrA2A(LPSTR dest, LPSTR src, int max) {
