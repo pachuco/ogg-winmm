@@ -22,6 +22,7 @@ What ECMA-130(RedBook) standard says:
 
 Other things:
 - Apparently, win95-era games did stupid things(like states shared between threads) with then-nonfunctional various parts of the API. Watch out for RESUME.
+- Oops! Winmm is treated as "known dll" in win9x and is not loaded from app folder. Executable must be patched.
 
 Questions
 - Do data tracks in the middle of CD affect total track count? What about playback times of tracks after?
