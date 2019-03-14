@@ -6,9 +6,10 @@ static char comBuf[BUFSIZE];
 static char errBuf[BUFSIZE];
 static char retBuf[BUFSIZE];
 
+
 static size_t _getline(char* lineptr, size_t n, FILE* stream) {
     int i;
-
+    
     if(!lineptr) return 0;
     fgets(lineptr, n, stream);
     for(i=0; i<n; i++) {

@@ -20,11 +20,12 @@ set err=%CD%
 set l_ogg=libogg-1.3.3
 set l_vorb=libvorbis-1.3.6
 set l_winmm=winmm
-set l_testmci=testmci
+set l_tools=tools
 
 call :del err_*.log 0
-call :del %bin%\%l_winmm%.dll 0
-call :del %bin%\%l_testmci%.exe 0
+call :del %bin%\winmm.dll 0
+::call :del %bin%\rip.exe 0
+::call :del %bin%\testmci.exe 0
 
 set name=%l_ogg%
 set files=framing.c bitwise.c
@@ -39,10 +40,10 @@ set files=%files% %bin%\%l_ogg%.a
 set inclinks=-I. -I..\%l_ogg%
 call :compile_ar %name% "%files% %inclinks% -m32 -std=gnu99 -O2 -shared -s"
 
-set name=%l_testmci%
+set name=%l_tools%
 set files=testmci.c
 set inclinks=-lwinmm -I.
-call :compile_bin %name% "%files% %inclinks% -mconsole -m32 -std=gnu99 -Wl,--enable-stdcall-fixup -O2 -s" exe
+call :compile_bin %name% "%files% %inclinks% -mconsole -m32 -std=gnu99 -Wl,--enable-stdcall-fixup -O2 -s" testmci.exe
 
 %WINDRES% src\%l_winmm%\wav-winmm.rc.in -O coff -o %bin%\wav-winmm-rc.o
 set name=%l_winmm%
@@ -51,7 +52,7 @@ set files=player.c wav-winmm.c stubs.c cdplayer.c wav-winmm.def
 set files=%files% sup\winmm_out.c sup\winfile.c sup\util.c
 set files=%files% %bin%\%l_vorb%.a %bin%\%l_ogg%.a %bin%\wav-winmm-rc.o
 set inclinks=-lwinmm -I. -I..\%l_vorb% -I..\%l_ogg%
-call :compile_bin %name% "%files% %inclinks% -m32 -std=gnu99 -Wl,--enable-stdcall-fixup -O2 -shared -s %o_dbg%" dll 
+call :compile_bin %name% "%files% %inclinks% -m32 -std=gnu99 -Wl,--enable-stdcall-fixup -O2 -shared -s %o_dbg%" winmm.dll 
 
 echo .
 echo all done!
@@ -61,13 +62,13 @@ exit /B 0
 
 
 :compile_bin
-::objname params extension
+::objname params outputName
 if not defined M_FORCE ( if exist %bin%\%~1.%~3 (
     echo skipped %~1.%~3
     exit /B 0
 ))
 pushd src\%~1
-%GCC% -o %bin%\%~1.%~3 %~2 %p% 2> %err%\err_%~1.log
+%GCC% -o %bin%\%~3 %~2 %p% 2> %err%\err_%~1.log
 call :errcheck %~1
 call :del %err%\err_%~1.log 1
 call :del *.o 0
