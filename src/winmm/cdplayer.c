@@ -121,7 +121,6 @@ CDP_ERR cdplayer_init() {
         cdtracks[i].flags  = 0;
     }
     maxTrackNr = 1;
-    gapFrameCount = 2 * MAX_TRACKS;
     trkCurrent = 0;
     
     //check if folder is there, if not, CD is not inserted
@@ -143,6 +142,9 @@ CDP_ERR cdplayer_init() {
             int   len = lstrlenA(rp2);
             int tnum, mm, ss, ff;
             
+            rp += len;
+            rp++; //end of string series is double-NUL terminated
+            
             //trackXX=MM:SS:FF
             if (!tokWalkA(&rp2, "track")) continue;
             if (!tokReadUIntA(&tnum, &rp2, 2)) continue;
@@ -153,8 +155,7 @@ CDP_ERR cdplayer_init() {
             if (!tokReadUIntA(&ss,  &rp2, 2)) continue;
             if (!tokWalkA(&rp2, ":")) continue;
             if (!tokReadUIntA(&ff,  &rp2, 2)) continue;
-            rp += len;
-            rp++; //end of string series is double-NUL terminated
+            if (*rp == '\0') continue;
             
             cdtracks[tnum].frameLen = mm*60*FRAMES_PER_SECOND + ss*FRAMES_PER_SECOND + ff;
         }
@@ -214,8 +215,18 @@ CDP_ERR cdplayer_init() {
     }
     
     //process offsets
-    for (int i=0; i <= maxTrackNr; i++) {
-        Track* t = &cdtracks[i];
+    {
+        int prevOff = 2 * MAX_TRACKS; //initial CD gap
+        for (int i=1; i <= maxTrackNr; i++) {
+            Track* trk = &cdtracks[i];
+            trk->frameOff = prevOff;
+            if (trk->flags&CDPF_ISAUDIO && trk->frameLen == 0) {
+                trk->frameLen = 4 * FRAMES_PER_SECOND; //lazy default
+            } else {
+                trk->frameLen = trk->frameLen;
+            }
+            prevOff += trk->frameLen;
+        }
     }
     
     return CDPE_OK;
