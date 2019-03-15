@@ -68,29 +68,6 @@ LPSTR ib10ToStr(LPSTR dest, int32_t num, int size, BOOL isZPad) {
     #undef BS
 }*/
 
-LPSTR ub10FromStr(uint32_t* dest, LPSTR src, int max) {
-    uint64_t num=0;
-    uint16_t i=0, ai=0;
-    int altMax = lstrlenA(src);
-    uint8_t dig;
-    
-    max = MIN(max, altMax);
-    if (max <= 0) return NULL;
-    
-    while (A2I(src[i]) == 0) i++;
-    for (; ai < max; ai++) {
-        uint8_t dig = A2I(src[i+ai]);
-        if (dig > 9) break;
-        num = dig + num*10;
-    }
-    i += ai;
-    if (num > UINT32_MAX) return NULL;
-    if (ai = 0) return NULL;
-    
-    *dest = (uint32_t)num;
-    return src+i;
-}
-
 LPSTR ub10ToStr(LPSTR dest, uint32_t num, int size, BOOL isZPad) {
     #define BS 16
     CHAR tbuf[BS];
@@ -167,7 +144,7 @@ LPWSTR strWriteA2W(LPWSTR dest, LPCSTR src, int max) {
     return dest+max-1;
 }
 
-/*BOOL strtokMatchTemplA(LPCSTR src, LPCSTR templ, CHAR magic) {
+/*BOOL tokMatchTemplA(LPCSTR src, LPCSTR templ, CHAR magic) {
     int len = lstrlenA(src);
     
     if (len > lstrlenA(templ)) return FALSE;
@@ -179,19 +156,48 @@ LPWSTR strWriteA2W(LPWSTR dest, LPCSTR src, int max) {
     return TRUE;
 }*/
 
-LPSTR strtokWalkA(LPCSTR src, LPCSTR token) {
-    int ls = lstrlenA(src);
+DWORD tokWalkA(LPSTR* strPtr, LPCSTR token) {
+    int ls = lstrlenA(*strPtr);
     int lt = lstrlenA(token);
     int max, i=0, i2=0;
+    LPSTR src = *strPtr;
     
-    if (lt > ls) return NULL;
+    if (lt > ls) return 0;
     max = ls;
     while (src[i] == ' ') i++;
     if (src[i] == token[0]) max = i + lt;
     for (; i < max; i++, i2++) {
-        if (src[i] != token[i2]) return NULL;
+        if (src[i] != token[i2]) return 0;
     }
-    return src+i+1;
+    *strPtr += i+1;
+    return i+1;
+}
+
+DWORD tokReadUIntA(uint32_t* dest, LPSTR* strPtr, int max) {
+    uint64_t num=0;
+    uint16_t i=0, ai=0;
+    int altMax = lstrlenA(*strPtr);
+    uint8_t dig;
+    LPSTR src = *strPtr;
+    
+    max = MIN(max, altMax);
+    if (max <= 0) return NULL;
+    
+    while (src[i] == ' ') i++;
+    while (A2I(src[i]) == 0) i++;
+    for (; ai < max; ai++) {
+        uint8_t dig = A2I(src[i+ai]);
+        if (dig > 9) break;
+        num = dig + num*10;
+    }
+    i += ai;
+    if (A2I(src[i]) <= 9) return 0;
+    if (num > UINT32_MAX) return 0;
+    if (ai = 0) return 0;
+    
+    *strPtr += i;
+    *dest = (uint32_t)num;
+    return src+i;
 }
 
 /*void concatStrA2A(LPSTR dest, LPSTR src, int max) {

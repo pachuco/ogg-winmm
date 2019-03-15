@@ -36,7 +36,6 @@ static uint8_t trkCurrent;
 static uint8_t gapFrameCount;
 
 //-----------------------------vorbis crud
-
 static size_t ovCB_read(void *ptr, size_t size, size_t nmemb, void *datasource) {
     HANDLE hFile = (HANDLE)datasource;
     DWORD len;
@@ -125,7 +124,7 @@ CDP_ERR cdplayer_init() {
     gapFrameCount = 2 * MAX_TRACKS;
     trkCurrent = 0;
     
-    //check if folder is there
+    //check if folder is there, if not, CD is not inserted
     hFind = fprx_FindFirstFileA(CDMUSICBASE, &ffd);
     if (hFind != INVALID_HANDLE_VALUE) {
         FindClose(hFind);
@@ -142,21 +141,22 @@ CDP_ERR cdplayer_init() {
         while (rp[0]!='\0') {
             char* rp2 = rp;
             int   len = lstrlenA(rp2);
-            int trk, mm, ss, ff;
+            int tnum, mm, ss, ff;
             
             //trackXX=MM:SS:FF
-            if (!(rp2 = strtokWalkA(rp2, "track"))) continue;
-            if (!(rp2 = ub10FromStr(&trk, rp2, 2))) continue;
-            if (!(rp2 = strtokWalkA(rp2, "="))) continue;
-            if (!(rp2 = ub10FromStr(&mm,  rp2, 2))) continue;
-            if (!(rp2 = strtokWalkA(rp2, ":"))) continue;
-            if (!(rp2 = ub10FromStr(&ss,  rp2, 2))) continue;
-            if (!(rp2 = strtokWalkA(rp2, ":"))) continue;
-            if (!(rp2 = ub10FromStr(&ff,  rp2, 2))) continue;
+            if (!tokWalkA(&rp2, "track")) continue;
+            if (!tokReadUIntA(&tnum, &rp2, 2)) continue;
+            if (tnum == 0) continue; // skip 00
+            if (!tokWalkA(&rp2, "=")) continue;
+            if (!tokReadUIntA(&mm,  &rp2, 2)) continue;
+            if (!tokWalkA(&rp2, ":")) continue;
+            if (!tokReadUIntA(&ss,  &rp2, 2)) continue;
+            if (!tokWalkA(&rp2, ":")) continue;
+            if (!tokReadUIntA(&ff,  &rp2, 2)) continue;
             rp += len;
             rp++; //end of string series is double-NUL terminated
             
-            cdtracks[trk].frameLen = mm*60*FRAMES_PER_SECOND + ss*FRAMES_PER_SECOND + ff;
+            cdtracks[tnum].frameLen = mm*60*FRAMES_PER_SECOND + ss*FRAMES_PER_SECOND + ff;
         }
         
         FindClose(hFind);
@@ -165,36 +165,44 @@ CDP_ERR cdplayer_init() {
     //get audio files
     static char pathTrackModel[] = CDMUSICBASE "\\track??.ogg";
     hFind = fprx_FindFirstFileA(pathTrackModel, &ffd);
-    if (hFind != INVALID_HANDLE_VALUE) { //if folder is not there, we have a CD with no tracks.
+    if (hFind != INVALID_HANDLE_VALUE) { //if folder is there and lacks oggs, we have a CD with no tracks.
         do {
             HANDLE hFile;
-            uint32_t tnum;
+            int tnum;
+            char* rp = ffd.cFileName + 5;
+            int ovRet;
             
             if (ffd.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) continue;
-            if (!ub10FromStr(&tnum, ffd.cFileName + 5, 2)) continue;
+            if (!tokReadUIntA(&tnum, &rp, 2)) continue;
             if (tnum == 0) continue; //track 00 is not valid
             
             ub10ToStr(pathTrackModel+12, tnum, 2, TRUE);
             hFile = OPENFILEWITHFAVPARAMS(pathTrackModel);
             if (hFile == INVALID_HANDLE_VALUE) continue;
-            if (ov_open_callbacks(hFile, &vf, NULL, 0, ovCB)) continue;
+            
+            //ov_test_callbacks is significantly faster, but doesn't allow telling length
+            ovRet = (cdtracks[tnum].frameLen == 0) ?
+                ov_open_callbacks(hFile, &vf, NULL, 0, ovCB):
+                ov_test_callbacks(hFile, &vf, NULL, 0, ovCB);
+            if (ovRet) continue;
             
             vorbis_info *vi = ov_info(&vf, -1);
-            //lengths from ini file override ogg lengths
+            //allow only CDAudio-spec ogg files
             if (vi && vi->channels == 2 && vi->rate == 44100) {
-                ogg_int64_t lenRaw = ov_pcm_total(&vf, -1);
-                if (lenRaw != OV_EINVAL && lenRaw <= UINT32_MAX) {
-                    DWORD smpLen = lenRaw;
-                    if (cdtracks[tnum].frameLen == 0) { //ini override
+                
+                //lengths from ini file override ogg lengths
+                if (cdtracks[tnum].frameLen == 0) {
+                    ogg_int64_t lenRaw = ov_pcm_total(&vf, -1);
+                    
+                    if (lenRaw != OV_EINVAL && lenRaw <= UINT32_MAX) {
+                        DWORD smpLen = lenRaw;
+                        
                         //CD audio is always aligned to frames
                         cdtracks[tnum].frameLen  = smpLen / SAMPLES_PER_FRAME + (smpLen%SAMPLES_PER_FRAME > 0 ? 1 : 0);
-                        cdtracks[tnum].flags    |= CDPF_ISAUDIO;
                         if (tnum > maxTrackNr) maxTrackNr = tnum;
                     }
-                    printf("%d\n", cdtracks[tnum].frameLen);
-                } else {
-                    cdtracks[tnum].flags &= ~CDPF_ISAUDIO; //clear flag
                 }
+                cdtracks[tnum].flags |= CDPF_ISAUDIO;
             } else {
                 cdtracks[tnum].flags &= ~CDPF_ISAUDIO; //clear flag
             }

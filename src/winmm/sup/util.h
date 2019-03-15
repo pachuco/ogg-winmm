@@ -25,16 +25,16 @@ char _errbuf[MAXERRBUF];
 #define MAXINT32DIG 11+1
 #define MAXUINT32DIG 11
 //char* ib10FromStr(int32_t* dest, char* src, int max);
-char* ub10FromStr(uint32_t* dest, char* src, int max);
 //char* ib10ToStr(char* dest, int32_t  num, int size, BOOL isZPad);
-char* ub10ToStr(char* dest, uint32_t num, int size, BOOL isZPad);
+LPSTR ub10ToStr(LPSTR dest, uint32_t num, int size, BOOL isZPad);
 LPSTR  fnGetParentA(LPSTR  path);
 LPWSTR fnGetParentW(LPWSTR path);
 LPSTR  strWriteA2A(LPSTR dest,  LPCSTR src, int max);
 LPSTR  strWriteW2A(LPSTR dest, LPCWSTR src, int max);
 LPWSTR strWriteA2W(LPWSTR dest, LPCSTR src, int max);
-//BOOL   strtokMatchTemplA(LPCSTR src, LPCSTR templ, CHAR magic);
-LPSTR strtokWalkA(LPCSTR src, LPCSTR token);
+//BOOL   tokMatchTemplA(LPCSTR src, LPCSTR templ, CHAR magic);
+DWORD  tokWalkA(LPSTR* strPtr, LPCSTR token);
+DWORD  tokReadUIntA(uint32_t* dest, LPSTR* strPtr, int max);
 //void concatStrA2A(LPSTR dest, LPCSTR src, int max);
 
 
