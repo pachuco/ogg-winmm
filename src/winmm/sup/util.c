@@ -181,7 +181,7 @@ DWORD tokReadUIntA(uint32_t* dest, LPSTR* strPtr, int max) {
     LPSTR src = *strPtr;
     
     max = MIN(max, altMax);
-    if (max <= 0) return NULL;
+    if (max <= 0) return 0;
     
     while (src[i] == ' ') i++;
     while (A2I(src[i]) == 0) i++;
@@ -191,13 +191,12 @@ DWORD tokReadUIntA(uint32_t* dest, LPSTR* strPtr, int max) {
         num = dig + num*10;
     }
     i += ai;
-    if (A2I(src[i]) <= 9) return 0;
     if (num > UINT32_MAX) return 0;
     if (ai = 0) return 0;
     
     *strPtr += i;
     *dest = (uint32_t)num;
-    return src+i;
+    return i;
 }
 
 /*void concatStrA2A(LPSTR dest, LPSTR src, int max) {

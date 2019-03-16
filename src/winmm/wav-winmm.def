@@ -4,25 +4,21 @@ EXPORTS
     auxGetVolume    = fake_auxGetVolume
     auxSetVolume    = fake_auxSetVolume
     auxGetDevCapsA  = fake_auxGetDevCapsA
-auxGetDevCapsW = stub_auxGetDevCapsW
     auxGetNumDevs   = fake_auxGetNumDevs
-mciExecute = stub_mciExecute
     mciSendCommandA = fake_mciSendCommandA
-mciSendCommandW = stub_mciSendCommandW
     mciSendStringA  = fake_mciSendStringA
-mciSendStringW = stub_mciSendStringW
     
-;extra exports that never made it across the years
-;keep them here just in case
-;--------------Windows XP
+;;extra exports that never made it across the years
+;;keep them here just in case
+;;--------------Windows XP
 ;gfxAddGfx
 ;gfxBatchChange
 ;gfxCreateGfxFactoriesList
 ;gfxCreateZoneFactoriesList
 ;gfxDestroyDeviceInterfaceList
 ;gfxEnumerateGfxs
-;_gfxLogoff@0
-;_gfxLogon@4
+;;_gfxLogoff@0
+;;_gfxLogon@4
 ;gfxModifyGfx
 ;gfxOpenGfx
 ;gfxRemoveGfx
@@ -32,9 +28,9 @@ mciSendStringW = stub_mciSendStringW
 ;WinmmLogoff
 ;WinmmLogon
 ;winmmSetDebugLevel
-;--------------Windows 2000
+;;--------------Windows 2000
 ;MigrateMidiUser
-;--------------Windows 98
+;;--------------Windows 98
 ;DrvClose
 ;DrvDefDriverProc
 ;DrvOpen
@@ -45,197 +41,197 @@ mciSendStringW = stub_mciSendStringW
 ;OpenDriverA
 ;winmmf_ThunkData32
 ;winmmsl_ThunkData32
-;--------------
-
-aux32Message = stub_aux32Message
-;auxGetDevCapsA
-;auxGetDevCapsW
-auxGetNumDevs = stub_auxGetNumDevs
-;auxGetVolume
-auxOutMessage = stub_auxOutMessage
-;auxSetVolume
-CloseDriver = stub_CloseDriver
-DefDriverProc = stub_DefDriverProc
-DriverCallback = stub_DriverCallback
-DrvGetModuleHandle = stub_DrvGetModuleHandle
-GetDriverModuleHandle = stub_GetDriverModuleHandle
-joy32Message = stub_joy32Message
-joyConfigChanged = stub_joyConfigChanged
-joyGetDevCapsA = stub_joyGetDevCapsA
-joyGetDevCapsW = stub_joyGetDevCapsW
-joyGetNumDevs = stub_joyGetNumDevs
-joyGetPos = stub_joyGetPos
-joyGetPosEx = stub_joyGetPosEx
-joyGetThreshold = stub_joyGetThreshold
-joyReleaseCapture = stub_joyReleaseCapture
-joySetCapture = stub_joySetCapture
-joySetThreshold = stub_joySetThreshold
-mci32Message = stub_mci32Message
-mciDriverNotify = stub_mciDriverNotify
-mciDriverYield = stub_mciDriverYield
-;mciExecute
-mciFreeCommandResource = stub_mciFreeCommandResource
-mciGetCreatorTask = stub_mciGetCreatorTask
-mciGetDeviceIDA = stub_mciGetDeviceIDA
-mciGetDeviceIDFromElementIDA = stub_mciGetDeviceIDFromElementIDA
-mciGetDeviceIDFromElementIDW = stub_mciGetDeviceIDFromElementIDW
-mciGetDeviceIDW = stub_mciGetDeviceIDW
-mciGetDriverData = stub_mciGetDriverData
-mciGetErrorStringA = stub_mciGetErrorStringA
-mciGetErrorStringW = stub_mciGetErrorStringW
-mciGetYieldProc = stub_mciGetYieldProc
-mciLoadCommandResource = stub_mciLoadCommandResource
-;mciSendCommandA
-;mciSendCommandW
-;mciSendStringA
-;mciSendStringW
-mciSetDriverData = stub_mciSetDriverData
-mciSetYieldProc = stub_mciSetYieldProc
-mid32Message = stub_mid32Message
-midiConnect = stub_midiConnect
-midiDisconnect = stub_midiDisconnect
-midiInAddBuffer = stub_midiInAddBuffer
-midiInClose = stub_midiInClose
-midiInGetDevCapsA = stub_midiInGetDevCapsA
-midiInGetDevCapsW = stub_midiInGetDevCapsW
-midiInGetErrorTextA = stub_midiInGetErrorTextA
-midiInGetErrorTextW = stub_midiInGetErrorTextW
-midiInGetID = stub_midiInGetID
-midiInGetNumDevs = stub_midiInGetNumDevs
-midiInMessage = stub_midiInMessage
-midiInOpen = stub_midiInOpen
-midiInPrepareHeader = stub_midiInPrepareHeader
-midiInReset = stub_midiInReset
-midiInStart = stub_midiInStart
-midiInStop = stub_midiInStop
-midiInUnprepareHeader = stub_midiInUnprepareHeader
-midiOutCacheDrumPatches = stub_midiOutCacheDrumPatches
-midiOutCachePatches = stub_midiOutCachePatches
-midiOutClose = stub_midiOutClose
-midiOutGetDevCapsA = stub_midiOutGetDevCapsA
-midiOutGetDevCapsW = stub_midiOutGetDevCapsW
-midiOutGetErrorTextA = stub_midiOutGetErrorTextA
-midiOutGetErrorTextW = stub_midiOutGetErrorTextW
-midiOutGetID = stub_midiOutGetID
-midiOutGetNumDevs = stub_midiOutGetNumDevs
-midiOutGetVolume = stub_midiOutGetVolume
-midiOutLongMsg = stub_midiOutLongMsg
-midiOutMessage = stub_midiOutMessage
-midiOutOpen = stub_midiOutOpen
-midiOutPrepareHeader = stub_midiOutPrepareHeader
-midiOutReset = stub_midiOutReset
-midiOutSetVolume = stub_midiOutSetVolume
-midiOutShortMsg = stub_midiOutShortMsg
-midiOutUnprepareHeader = stub_midiOutUnprepareHeader
-midiStreamClose = stub_midiStreamClose
-midiStreamOpen = stub_midiStreamOpen
-midiStreamOut = stub_midiStreamOut
-midiStreamPause = stub_midiStreamPause
-midiStreamPosition = stub_midiStreamPosition
-midiStreamProperty = stub_midiStreamProperty
-midiStreamRestart = stub_midiStreamRestart
-midiStreamStop = stub_midiStreamStop
-mixerClose = stub_mixerClose
-mixerGetControlDetailsA = stub_mixerGetControlDetailsA
-mixerGetControlDetailsW = stub_mixerGetControlDetailsW
-mixerGetDevCapsA = stub_mixerGetDevCapsA
-mixerGetDevCapsW = stub_mixerGetDevCapsW
-mixerGetID = stub_mixerGetID
-mixerGetLineControlsA = stub_mixerGetLineControlsA
-mixerGetLineControlsW = stub_mixerGetLineControlsW
-mixerGetLineInfoA = stub_mixerGetLineInfoA
-mixerGetLineInfoW = stub_mixerGetLineInfoW
-mixerGetNumDevs = stub_mixerGetNumDevs
-mixerMessage = stub_mixerMessage
-mixerOpen = stub_mixerOpen
-mixerSetControlDetails = stub_mixerSetControlDetails
-mmDrvInstall = stub_mmDrvInstall
-mmGetCurrentTask = stub_mmGetCurrentTask
-mmioAdvance = stub_mmioAdvance
-mmioAscend = stub_mmioAscend
-mmioClose = stub_mmioClose
-mmioCreateChunk = stub_mmioCreateChunk
-mmioDescend = stub_mmioDescend
-mmioFlush = stub_mmioFlush
-mmioGetInfo = stub_mmioGetInfo
-mmioInstallIOProcA = stub_mmioInstallIOProcA
-mmioInstallIOProcW = stub_mmioInstallIOProcW
-mmioOpenA = stub_mmioOpenA
-mmioOpenW = stub_mmioOpenW
-mmioRead = stub_mmioRead
-mmioRenameA = stub_mmioRenameA
-mmioRenameW = stub_mmioRenameW
-mmioSeek = stub_mmioSeek
-mmioSendMessage = stub_mmioSendMessage
-mmioSetBuffer = stub_mmioSetBuffer
-mmioSetInfo = stub_mmioSetInfo
-mmioStringToFOURCCA = stub_mmioStringToFOURCCA
-mmioStringToFOURCCW = stub_mmioStringToFOURCCW
-mmioWrite = stub_mmioWrite
-mmsystemGetVersion = stub_mmsystemGetVersion
-mmTaskBlock = stub_mmTaskBlock
-mmTaskCreate = stub_mmTaskCreate
-mmTaskSignal = stub_mmTaskSignal
-mmTaskYield = stub_mmTaskYield
-mod32Message = stub_mod32Message
-mxd32Message = stub_mxd32Message
-NotifyCallbackData = stub_NotifyCallbackData
-OpenDriver = stub_OpenDriver
-PlaySound = stub_PlaySound
-PlaySoundA = stub_PlaySoundA
-PlaySoundW = stub_PlaySoundW
-SendDriverMessage = stub_SendDriverMessage
-sndPlaySoundA = stub_sndPlaySoundA
-sndPlaySoundW = stub_sndPlaySoundW
-tid32Message = stub_tid32Message
-timeBeginPeriod = stub_timeBeginPeriod
-timeEndPeriod = stub_timeEndPeriod
-timeGetDevCaps = stub_timeGetDevCaps
-timeGetSystemTime = stub_timeGetSystemTime
-timeGetTime = stub_timeGetTime
-timeKillEvent = stub_timeKillEvent
-timeSetEvent = stub_timeSetEvent
-waveInAddBuffer = stub_waveInAddBuffer
-waveInClose = stub_waveInClose
-waveInGetDevCapsA = stub_waveInGetDevCapsA
-waveInGetDevCapsW = stub_waveInGetDevCapsW
-waveInGetErrorTextA = stub_waveInGetErrorTextA
-waveInGetErrorTextW = stub_waveInGetErrorTextW
-waveInGetID = stub_waveInGetID
-waveInGetNumDevs = stub_waveInGetNumDevs
-waveInGetPosition = stub_waveInGetPosition
-waveInMessage = stub_waveInMessage
-waveInOpen = stub_waveInOpen
-waveInPrepareHeader = stub_waveInPrepareHeader
-waveInReset = stub_waveInReset
-waveInStart = stub_waveInStart
-waveInStop = stub_waveInStop
-waveInUnprepareHeader = stub_waveInUnprepareHeader
-waveOutBreakLoop = stub_waveOutBreakLoop
-waveOutClose = stub_waveOutClose
-waveOutGetDevCapsA = stub_waveOutGetDevCapsA
-waveOutGetDevCapsW = stub_waveOutGetDevCapsW
-waveOutGetErrorTextA = stub_waveOutGetErrorTextA
-waveOutGetErrorTextW = stub_waveOutGetErrorTextW
-waveOutGetID = stub_waveOutGetID
-waveOutGetNumDevs = stub_waveOutGetNumDevs
-waveOutGetPitch = stub_waveOutGetPitch
-waveOutGetPlaybackRate = stub_waveOutGetPlaybackRate
-waveOutGetPosition = stub_waveOutGetPosition
-waveOutGetVolume = stub_waveOutGetVolume
-waveOutMessage = stub_waveOutMessage
-waveOutOpen = stub_waveOutOpen
-waveOutPause = stub_waveOutPause
-waveOutPrepareHeader = stub_waveOutPrepareHeader
-waveOutReset = stub_waveOutReset
-waveOutRestart = stub_waveOutRestart
-waveOutSetPitch = stub_waveOutSetPitch
-waveOutSetPlaybackRate = stub_waveOutSetPlaybackRate
-waveOutSetVolume = stub_waveOutSetVolume
-waveOutUnprepareHeader = stub_waveOutUnprepareHeader
-waveOutWrite = stub_waveOutWrite
-wid32Message = stub_wid32Message
-wod32Message = stub_wod32Message
-WOW32DriverCallback = stub_WOW32DriverCallback
-WOW32ResolveMultiMediaHandle = stub_WOW32ResolveMultiMediaHandle
-WOWAppExit = stub_WOWAppExit
+;;--------------
+;
+;aux32Message
+;;auxGetDevCapsA
+;;auxGetDevCapsW
+;auxGetNumDevs
+;;auxGetVolume
+;auxOutMessage
+;;auxSetVolume
+;CloseDriver
+;DefDriverProc
+;DriverCallback
+;DrvGetModuleHandle
+;GetDriverModuleHandle
+;joy32Message
+;joyConfigChanged
+;joyGetDevCapsA
+;joyGetDevCapsW
+;joyGetNumDevs
+;joyGetPos
+;joyGetPosEx
+;joyGetThreshold
+;joyReleaseCapture
+;joySetCapture
+;joySetThreshold
+;mci32Message
+;mciDriverNotify
+;mciDriverYield
+;;mciExecute
+;mciFreeCommandResource
+;mciGetCreatorTask
+;mciGetDeviceIDA
+;mciGetDeviceIDFromElementIDA
+;mciGetDeviceIDFromElementIDW
+;mciGetDeviceIDW
+;mciGetDriverData
+;mciGetErrorStringA
+;mciGetErrorStringW
+;mciGetYieldProc
+;mciLoadCommandResource
+;;mciSendCommandA
+;;mciSendCommandW
+;;mciSendStringA
+;;mciSendStringW
+;mciSetDriverData
+;mciSetYieldProc
+;mid32Message
+;midiConnect
+;midiDisconnect
+;midiInAddBuffer
+;midiInClose
+;midiInGetDevCapsA
+;midiInGetDevCapsW
+;midiInGetErrorTextA
+;midiInGetErrorTextW
+;midiInGetID
+;midiInGetNumDevs
+;midiInMessage
+;midiInOpen
+;midiInPrepareHeader
+;midiInReset
+;midiInStart
+;midiInStop
+;midiInUnprepareHeader
+;midiOutCacheDrumPatches
+;midiOutCachePatches
+;midiOutClose
+;midiOutGetDevCapsA
+;midiOutGetDevCapsW
+;midiOutGetErrorTextA
+;midiOutGetErrorTextW
+;midiOutGetID
+;midiOutGetNumDevs
+;midiOutGetVolume
+;midiOutLongMsg
+;midiOutMessage
+;midiOutOpen
+;midiOutPrepareHeader
+;midiOutReset
+;midiOutSetVolume
+;midiOutShortMsg
+;midiOutUnprepareHeader
+;midiStreamClose
+;midiStreamOpen
+;midiStreamOut
+;midiStreamPause
+;midiStreamPosition
+;midiStreamProperty
+;midiStreamRestart
+;midiStreamStop
+;mixerClose
+;mixerGetControlDetailsA
+;mixerGetControlDetailsW
+;mixerGetDevCapsA
+;mixerGetDevCapsW
+;mixerGetID
+;mixerGetLineControlsA
+;mixerGetLineControlsW
+;mixerGetLineInfoA
+;mixerGetLineInfoW
+;mixerGetNumDevs
+;mixerMessage
+;mixerOpen
+;mixerSetControlDetails
+;mmDrvInstall
+;mmGetCurrentTask
+;mmioAdvance
+;mmioAscend
+;mmioClose
+;mmioCreateChunk
+;mmioDescend
+;mmioFlush
+;mmioGetInfo
+;mmioInstallIOProcA
+;mmioInstallIOProcW
+;mmioOpenA
+;mmioOpenW
+;mmioRead
+;mmioRenameA
+;mmioRenameW
+;mmioSeek
+;mmioSendMessage
+;mmioSetBuffer
+;mmioSetInfo
+;mmioStringToFOURCCA
+;mmioStringToFOURCCW
+;mmioWrite
+;mmsystemGetVersion
+;mmTaskBlock
+;mmTaskCreate
+;mmTaskSignal
+;mmTaskYield
+;mod32Message
+;mxd32Message
+;NotifyCallbackData
+;OpenDriver
+;PlaySound
+;PlaySoundA
+;PlaySoundW
+;SendDriverMessage
+;sndPlaySoundA
+;sndPlaySoundW
+;tid32Message
+;timeBeginPeriod
+;timeEndPeriod
+;timeGetDevCaps
+;timeGetSystemTime
+;timeGetTime
+;timeKillEvent
+;timeSetEvent
+;waveInAddBuffer
+;waveInClose
+;waveInGetDevCapsA
+;waveInGetDevCapsW
+;waveInGetErrorTextA
+;waveInGetErrorTextW
+;waveInGetID
+;waveInGetNumDevs
+;waveInGetPosition
+;waveInMessage
+;waveInOpen
+;waveInPrepareHeader
+;waveInReset
+;waveInStart
+;waveInStop
+;waveInUnprepareHeader
+;waveOutBreakLoop
+;waveOutClose
+;waveOutGetDevCapsA
+;waveOutGetDevCapsW
+;waveOutGetErrorTextA
+;waveOutGetErrorTextW
+;waveOutGetID
+;waveOutGetNumDevs
+;waveOutGetPitch
+;waveOutGetPlaybackRate
+;waveOutGetPosition
+;waveOutGetVolume
+;waveOutMessage
+;waveOutOpen
+;waveOutPause
+;waveOutPrepareHeader
+;waveOutReset
+;waveOutRestart
+;waveOutSetPitch
+;waveOutSetPlaybackRate
+;waveOutSetVolume
+;waveOutUnprepareHeader
+;waveOutWrite
+;wid32Message
+;wod32Message
+;WOW32DriverCallback
+;WOW32ResolveMultiMediaHandle
+;WOWAppExit
