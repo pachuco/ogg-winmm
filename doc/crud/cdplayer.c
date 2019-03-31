@@ -8,7 +8,7 @@
 #include "sup/util.h"
 #include "cdplayer.h"
 
-#define OPENFILEWITHFAVPARAMS(x) fprx_CreateFileA(x, GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL | FILE_FLAG_SEQUENTIAL_SCAN, NULL)
+#define OPENFILEDEFAULT(x) fprx_CreateFileA(x, GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL | FILE_FLAG_SEQUENTIAL_SCAN, NULL)
 
 #define VALID_MILI(x) ((x) >= 2000 && (x) < 568320000)
 #define VALID_MSF(x)  (MCI_MSF_MINUTE(x) < 60 && MCI_MSF_SECOND(x) < 60 && MCI_MSF_FRAME(x) < 75)
@@ -111,7 +111,7 @@ static void audioCB(LPSTR buf, int sampWanted) {
                         char pathTrackModel[] = PATHTRACKMODEL;
                         //load and seek
                         ub10ToStr(pathTrackModel+12, i, 2, TRUE);
-                        hFile = OPENFILEWITHFAVPARAMS(pathTrackModel);
+                        hFile = OPENFILEDEFAULT(pathTrackModel);
                         if (hFile == INVALID_HANDLE_VALUE) continue;
                         ov_open_callbacks(hFile, &vf, NULL, 0, ovCB);
                     }
@@ -367,7 +367,7 @@ void cdplayer_init() {
             if (tnum == 0) continue; //track 00 is not valid
             
             ub10ToStr(pathTrackModel+12, tnum, 2, TRUE);
-            hFile = OPENFILEWITHFAVPARAMS(pathTrackModel);
+            hFile = OPENFILEDEFAULT(pathTrackModel);
             if (hFile == INVALID_HANDLE_VALUE) continue;
             
             //ov_test_callbacks is significantly faster, but doesn't allow telling length

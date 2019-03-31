@@ -20,8 +20,6 @@
 #include <dirent.h>
 
 #include "sup/util.h"
-#include "sup/winfile.h"
-#include "cdplayer.h"
 #include "player.h"
 
 #define MAGIC_DEVICEID 0xBEEF
@@ -98,8 +96,6 @@ int player_main() {
 
 BOOL WINAPI DllMain(HINSTANCE hinstDLL, DWORD fdwReason, LPVOID lpvReserved) {
     if (fdwReason == DLL_PROCESS_ATTACH) {
-        //fprx_init();
-        //printf("CDPlayer init status: %d\n", cdplayer_init());
         GetModuleFileName(hinstDLL, music_path, sizeof music_path);
         memset(tracks, 0, sizeof tracks);
 
@@ -129,7 +125,6 @@ BOOL WINAPI DllMain(HINSTANCE hinstDLL, DWORD fdwReason, LPVOID lpvReserved) {
                 position += tracks[i].length;
             }
         }
-
         DVERBOSE("Emulating total of %d CD tracks.\r\n\r\n", numTracks);
     } else if (fdwReason == DLL_PROCESS_DETACH) {
         

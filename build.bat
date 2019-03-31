@@ -47,8 +47,8 @@ call :compile_bin %name% "%files% %inclinks% -mconsole -m32 -std=gnu99 -Wl,--ena
 %WINDRES% src\%l_winmm%\wav-winmm.rc.in -O coff -o %bin%\wav-winmm-rc.o
 set name=%l_winmm%
 if defined M_DEBUG set o_dbg=%opts% -D _DEBUG
-set files=player.c wav-winmm.c stubs.c cdplayer.c wav-winmm.def
-set files=%files% sup\winmm_out.c sup\winfile.c sup\util.c
+set files=player.c wav-winmm.c stubs.c wav-winmm.def
+set files=%files% sup\winmm_out.c sup\util.c
 set files=%files% %bin%\%l_tremor%.a %bin%\%l_ogg%.a %bin%\wav-winmm-rc.o
 set inclinks=-I. -I..\%l_tremor% -I..\%l_ogg%
 call :compile_bin %name% "%files% %inclinks% -static-libgcc -m32 -std=gnu99 -Wl,--enable-stdcall-fixup -O3 -shared -s -masm=intel %o_dbg%" winmm.dll
