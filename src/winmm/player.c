@@ -1,4 +1,4 @@
-#include <vorbis/vorbisfile.h>
+#include <ivorbisfile.h>
 #include <stdio.h>
 #include <windows.h>
 #include <stdint.h>
@@ -11,6 +11,48 @@ int             plr_cnt         = 0;
 int             plr_lvol        = 0xFFFF;
 int             plr_rvol        = 0xFFFF;
 WAVEHDR         *plr_buffers[3] = { NULL, NULL, NULL };
+
+#define OPENFILEWITHFAVPARAMS(x) CreateFileA(x, GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL | FILE_FLAG_SEQUENTIAL_SCAN, NULL)
+//-----------------------------vorbis crud
+static size_t ovCB_read(void *ptr, size_t size, size_t nmemb, void *datasource) {
+    HANDLE hFile = (HANDLE)datasource;
+    DWORD len;
+    
+    ReadFile(hFile, ptr, size, &len, NULL);
+    return len;
+}
+static int ovCB_seek(void *datasource, ogg_int64_t offset, int whence) {
+    HANDLE hFile = (HANDLE)datasource;
+    LONG olow  = offset &  0xFFFFFFFF;
+    LONG ohigh = offset >> 32;
+    DWORD ret;
+    
+    switch (whence) {
+        case SEEK_CUR:
+            ret = SetFilePointer(hFile, olow, &ohigh, FILE_CURRENT);
+            break;
+        case SEEK_END:
+            ret = SetFilePointer(hFile, olow, &ohigh, FILE_END);
+            break;
+        case SEEK_SET:
+            ret = SetFilePointer(hFile, olow, &ohigh, FILE_BEGIN);
+            break;
+        default:
+            return -1;
+    }
+    return (ret == INVALID_SET_FILE_POINTER || ret == ERROR_NEGATIVE_SEEK) ? -1 : 0;
+}
+static int ovCB_close(void *datasource) {
+    HANDLE hFile = (HANDLE)datasource;
+    CloseHandle(hFile);
+    return 0;
+}
+static long ovCB_tell(void *datasource) {
+    HANDLE hFile = (HANDLE)datasource;
+    return SetFilePointer(hFile, 0, NULL, FILE_CURRENT);
+}
+static ov_callbacks ovCB = {&ovCB_read, &ovCB_seek, &ovCB_close, &ovCB_tell};
+//-----------------------------
 
 void plr_stop() {
     plr_cnt = 0;
@@ -46,10 +88,12 @@ void plr_volume(uint16_t lVol, uint16_t rVol) {
 }
 
 int plr_length(const char *path) {
+    HANDLE hFile;
     OggVorbis_File  vf;
-
-    if (ov_fopen(path, &vf) != 0)
-        return 0;
+    
+    hFile = OPENFILEWITHFAVPARAMS(path);
+    if (hFile == INVALID_HANDLE_VALUE) return 0;
+    if (ov_open_callbacks(hFile, &vf, NULL, 0, ovCB)) return 0;
 
     int ret = (int)ov_time_total(&vf, -1);
 
@@ -59,9 +103,12 @@ int plr_length(const char *path) {
 }
 
 int plr_play(const char *path) {
+    HANDLE hFile;
     plr_stop();
-
-    if (ov_fopen(path, &plr_vf) != 0) return 0;
+    
+    hFile = OPENFILEWITHFAVPARAMS(path);
+    if (hFile == INVALID_HANDLE_VALUE) return 0;
+    if (ov_open_callbacks(hFile, &plr_vf, NULL, 0, ovCB)) return 0;
 
     vorbis_info *vi = ov_info(&plr_vf, -1);
 
@@ -95,7 +142,7 @@ int plr_pump() {
     char *buf = malloc(bufsize);
 
     while (pos < bufsize) {
-        long bytes = ov_read(&plr_vf, buf + pos, bufsize - pos, 0, 2, 1, NULL);
+        long bytes = ov_read(&plr_vf, buf + pos, bufsize - pos, NULL);
 
         if (bytes == OV_HOLE) {
             free(buf);

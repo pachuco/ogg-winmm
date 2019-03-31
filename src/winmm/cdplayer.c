@@ -1,4 +1,4 @@
-#include <vorbis/vorbisfile.h>
+#include <ivorbisfile.h>
 #include <windows.h>
 #include <stdint.h>
 #include <assert.h>
@@ -126,7 +126,7 @@ static void audioCB(LPSTR buf, int sampWanted) {
     
     if (p_isCDinDrive && p_isCDTrayClosed && p_isPlaying) {
         while (numsamp < SAMPLES_PER_FRAME) {
-            long bytes = ov_read(&vf, buf, SAMPLES_PER_FRAME*4, 0, 2, 1, NULL);
+            long bytes = ov_read(&vf, buf, SAMPLES_PER_FRAME*4, NULL);
             int len = len / 4;
             if (bytes == OV_HOLE) continue;
             
