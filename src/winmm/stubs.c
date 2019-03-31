@@ -5,9 +5,9 @@
 
 static HINSTANCE hRealWinmm = NULL;
 
+
 #define STUBFUNC(FN) \
-__asm__(\
-    ".globl _"#FN"; _"#FN":;"\
+__asm__(".globl _"#FN"; _"#FN":;"\
     "mov eax, [1f];"\
     "test eax, eax; jnz 10f;"\
     "call _loadRealDLL;"\
@@ -22,8 +22,7 @@ __asm__(\
     "1: .int 0;"\
     "2: .ascii \"Stub fail! \";"\
     "3: .asciz \""#FN"\";"\
-    ".section .drectve; .ascii \" -export:\\\""#FN"\\\"\"; .text;"\
-);
+".section .drectve; .ascii \" -export:\\\""#FN"\\\"\"; .text;");
 
 //watches for the app to close, unloads the library when it does
 //since FreeLibrary is dangerous in DllMain
@@ -41,7 +40,7 @@ HINSTANCE loadRealDLL() {
     char winmm_path[MAX_PATH];
 
     GetSystemDirectoryA(winmm_path, MAX_PATH);
-    strncat(winmm_path, "//winmm.DLL", MAX_PATH);
+    strncat(winmm_path, "\\winmm.DLL", MAX_PATH);
     hRealWinmm = LoadLibraryA(winmm_path);
     
     //start watcher thread to close the library
