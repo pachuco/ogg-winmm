@@ -24,7 +24,7 @@
 #include "cdplayer.h"
 #include "player.h"
 
-#define MAGIC_DEVICEID 0xCD00BEEF
+#define MAGIC_DEVICEID 0xBEEF
 #define MAX_TRACKS 99
 
 struct track_info {
