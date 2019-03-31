@@ -6,10 +6,9 @@
 typedef enum CDP_ERR {
     CDPE_OK,
     CDPE_DEVICE,
-    CDPE_NOMEDIA
+    CDPE_RANGE
 } CDP_ERR;
 
-CDP_ERR cdplayer_init();
-void cplayer_stop();
+void cdplayer_init();
 
 #endif
