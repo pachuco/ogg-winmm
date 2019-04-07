@@ -5,6 +5,8 @@
 
 static HINSTANCE hRealWinmm = NULL;
 
+__attribute__((used)) void* pGetProcAddress     = &GetProcAddress;
+__attribute__((used)) void* pOutputDebugStringA = &OutputDebugStringA;
 
 #define STUBFUNC(FN) \
 __asm__(".globl _"#FN"; _"#FN":;"\

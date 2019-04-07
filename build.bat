@@ -2,6 +2,7 @@
 
 ::Edit gccbase from build.bat or leave it empty if already in %PATH%.
 set gccbase=G:\p_files\rtdk\mingw32-gcc5\bin
+set gccbase=G:\p_files\rtdk\i686-8.1.0-win32-dwarf-rt_v6-rev0\mingw32\bin
 set GCC=gcc.exe
 set AR=ar.exe
 set WINDRES=windres.exe
@@ -50,7 +51,7 @@ if defined M_DEBUG set o_dbg=%opts% -D _DEBUG
 set files=player.c wav-winmm.c stubs.c wav-winmm.def
 set files=%files% sup\winmm_out.c sup\util.c
 set files=%files% %bin%\%l_tremor%.a %bin%\%l_ogg%.a %bin%\wav-winmm-rc.o
-set inclinks=-I. -I..\%l_tremor% -I..\%l_ogg%
+set inclinks=-lwinmm -I. -I..\%l_tremor% -I..\%l_ogg%
 call :compile_bin %name% "%files% %inclinks% -static-libgcc -m32 -std=gnu99 -Wl,--enable-stdcall-fixup -O3 -shared -s -masm=intel %o_dbg%" winmm.dll
 
 echo .
