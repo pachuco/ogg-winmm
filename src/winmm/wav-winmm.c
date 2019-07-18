@@ -70,7 +70,7 @@ int player_main() {
         if ((first == last && current > last) || (first != last && current == last)) {
             playing = 0;
         } else { //try to play song
-            DVERBOSE("Next track: %s\r\n", tracks[current].path);
+            DVERBOSE("Next track: %s", tracks[current].path);
             playing = plr_play(tracks[current].path);
         }
 
@@ -83,7 +83,7 @@ int player_main() {
                 SuspendThread(player); //pause thread until next MCI_PLAY
             }
 
-            if (plr_pump() == 0) break; //done playing song
+            if (!plr_pump()) break; //done playing song
             if (updateTrack) break; //MCI_PLAY
         }
         current++;
@@ -103,8 +103,8 @@ BOOL WINAPI DllMain(HINSTANCE hinstDLL, DWORD fdwReason, LPVOID lpvReserved) {
         if (last) *last = '\0';
         strncat(music_path, "\\MUSIC", sizeof music_path - 1);
 
-        DVERBOSE("ogg-winmm music directory is %s\r\n", music_path);
-        DVERBOSE("ogg-winmm searching tracks...\r\n");
+        DVERBOSE("ogg-winmm music directory is %s", music_path);
+        DVERBOSE("ogg-winmm searching tracks...");
 
         unsigned int position = 0;
 
@@ -119,13 +119,13 @@ BOOL WINAPI DllMain(HINSTANCE hinstDLL, DWORD fdwReason, LPVOID lpvReserved) {
             } else {
                 if (firstTrack == -1) firstTrack = i;
 
-                DVERBOSE("Track %02d: %02d:%02d @ %d seconds\r\n", i, tracks[i].length / 60, tracks[i].length % 60, tracks[i].position);
+                DVERBOSE("Track %02d: %02d:%02d @ %d seconds", i, tracks[i].length / 60, tracks[i].length % 60, tracks[i].position);
                 numTracks++;
                 lastTrack = i;
                 position += tracks[i].length;
             }
         }
-        DVERBOSE("Emulating total of %d CD tracks.\r\n\r\n", numTracks);
+        DVERBOSE("Emulating total of %d CD tracks.", numTracks);
     } else if (fdwReason == DLL_PROCESS_DETACH) {
         
     }
@@ -136,48 +136,49 @@ BOOL WINAPI DllMain(HINSTANCE hinstDLL, DWORD fdwReason, LPVOID lpvReserved) {
 MCIERROR WINAPI fake_mciSendCommandA(MCIDEVICEID IDDevice, UINT uMsg, DWORD_PTR fdwCommand, DWORD_PTR dwParam) {
     char cmdbuf[1024];
 
-    DVERBOSE("mciSendCommandA(IDDevice=%p, uMsg=%p, fdwCommand=%p, dwParam=%p)\r\n", IDDevice, uMsg, fdwCommand, dwParam);
+    DVERBOSE("mciSendCommandA(IDDevice=%p, uMsg=%p, fdwCommand=%p, dwParam=%p)", IDDevice, uMsg, fdwCommand, dwParam);
 
     if (fdwCommand & MCI_NOTIFY) {
-        DVERBOSE("  MCI_NOTIFY\r\n");
+        DVERBOSE("  MCI_NOTIFY");
     }
 
     if (fdwCommand & MCI_WAIT) {
-        DVERBOSE("  MCI_WAIT\r\n");
+        DVERBOSE("  MCI_WAIT");
     }
 
     if (uMsg == MCI_OPEN) {
         LPMCI_OPEN_PARMS parms = (LPVOID)dwParam;
 
-        DVERBOSE("  MCI_OPEN\r\n");
+        DVERBOSE("  MCI_OPEN");
 
         if (fdwCommand & MCI_OPEN_ALIAS) {
-            DVERBOSE("    MCI_OPEN_ALIAS\r\n");
+            DVERBOSE("    MCI_OPEN_ALIAS");
+            goto BYPASS;
         }
 
         if (fdwCommand & MCI_OPEN_SHAREABLE) {
-            DVERBOSE("    MCI_OPEN_SHAREABLE\r\n");
+            DVERBOSE("    MCI_OPEN_SHAREABLE");
         }
 
         if (fdwCommand & MCI_OPEN_TYPE_ID) {
-            DVERBOSE("    MCI_OPEN_TYPE_ID\r\n");
+            DVERBOSE("    MCI_OPEN_TYPE_ID");
 
             if (LOWORD(parms->lpstrDeviceType) == MCI_DEVTYPE_CD_AUDIO) {
-                DVERBOSE("  Returning magic device id for MCI_DEVTYPE_CD_AUDIO\r\n");
+                DVERBOSE("  Returning magic device id for MCI_DEVTYPE_CD_AUDIO");
                 parms->wDeviceID = MAGIC_DEVICEID;
-                return 0;
-            }
+                return MMSYSERR_NOERROR;;
+            } else goto BYPASS;
         }
 
         if (fdwCommand & MCI_OPEN_TYPE && !(fdwCommand & MCI_OPEN_TYPE_ID)) {
-            DVERBOSE("    MCI_OPEN_TYPE\r\n");
-            DVERBOSE("        -> %s\r\n", parms->lpstrDeviceType);
+            DVERBOSE("MCI_OPEN_TYPE");
+            DVERBOSE("        -> %s", parms->lpstrDeviceType);
 
-            if (strcmp(parms->lpstrDeviceType, "cdaudio") == 0) {
-                DVERBOSE("  Returning magic device id for MCI_DEVTYPE_CD_AUDIO\r\n");
+            if (!strcmp(parms->lpstrDeviceType, "cdaudio")) {
+                DVERBOSE("Returning magic device id for MCI_DEVTYPE_CD_AUDIO");
                 parms->wDeviceID = MAGIC_DEVICEID;
-                return 0;
-            }
+                return MMSYSERR_NOERROR;
+            } else goto BYPASS;
         }
     }
 
@@ -185,33 +186,31 @@ MCIERROR WINAPI fake_mciSendCommandA(MCIDEVICEID IDDevice, UINT uMsg, DWORD_PTR 
         if (uMsg == MCI_SET) {
             LPMCI_SET_PARMS parms = (LPVOID)dwParam;
 
-            DVERBOSE("  MCI_SET\r\n");
+            DVERBOSE("  MCI_SET");
 
             if (fdwCommand & MCI_SET_TIME_FORMAT) {
-                DVERBOSE("    MCI_SET_TIME_FORMAT\r\n");
+                DVERBOSE("    MCI_SET_TIME_FORMAT");
 
                 time_format = parms->dwTimeFormat;
 
                 if        (parms->dwTimeFormat == MCI_FORMAT_BYTES) {
-                    DVERBOSE("      MCI_FORMAT_BYTES\r\n");
+                    DVERBOSE("      MCI_FORMAT_BYTES");
                 } else if (parms->dwTimeFormat == MCI_FORMAT_FRAMES) {
-                    DVERBOSE("      MCI_FORMAT_FRAMES\r\n");
+                    DVERBOSE("      MCI_FORMAT_FRAMES");
                 } else if (parms->dwTimeFormat == MCI_FORMAT_HMS) {
-                    DVERBOSE("      MCI_FORMAT_HMS\r\n");
+                    DVERBOSE("      MCI_FORMAT_HMS");
                 } else if (parms->dwTimeFormat == MCI_FORMAT_MILLISECONDS) {
-                    DVERBOSE("      MCI_FORMAT_MILLISECONDS\r\n");
+                    DVERBOSE("      MCI_FORMAT_MILLISECONDS");
                 } else if (parms->dwTimeFormat == MCI_FORMAT_MSF) {
-                    DVERBOSE("      MCI_FORMAT_MSF\r\n");
+                    DVERBOSE("      MCI_FORMAT_MSF");
                 } else if (parms->dwTimeFormat == MCI_FORMAT_SAMPLES) {
-                    DVERBOSE("      MCI_FORMAT_SAMPLES\r\n");
+                    DVERBOSE("      MCI_FORMAT_SAMPLES");
                 } else if (parms->dwTimeFormat == MCI_FORMAT_TMSF) {
-                    DVERBOSE("      MCI_FORMAT_TMSF\r\n");
+                    DVERBOSE("      MCI_FORMAT_TMSF");
                 }
             }
-        }
-
-        if (uMsg == MCI_CLOSE) {
-            DVERBOSE("  MCI_CLOSE\r\n");
+        } else if (uMsg == MCI_CLOSE) {
+            DVERBOSE("  MCI_CLOSE");
 
             if (player) {
                 ResumeThread(player); //just in case it's suspended, else deadlock
@@ -221,23 +220,22 @@ MCIERROR WINAPI fake_mciSendCommandA(MCIDEVICEID IDDevice, UINT uMsg, DWORD_PTR 
 
             playing = 0;
             player = NULL;
-        }
-
-        if (uMsg == MCI_PLAY) {
+        } else if (uMsg == MCI_PLAY) {
             LPMCI_PLAY_PARMS parms = (LPVOID)dwParam;
 
-            DVERBOSE("  MCI_PLAY\r\n");
+            DVERBOSE("  MCI_PLAY");
 
             if (fdwCommand & MCI_FROM) {
 				//Wipeout 2097 (and similar cases) fix
 				if (MCI_TMSF_TRACK(parms->dwFrom) == 0)
 				{
+                    // why rand?
 					parms->dwFrom = rand() % numTracks;
 					parms->dwTo = parms->dwFrom + 1;
 				}
                 //end of Wipeout 2097 (and similar cases) fix
                 
-                DVERBOSE("    dwFrom: %d\r\n", parms->dwFrom);
+                DVERBOSE("    dwFrom: %d", parms->dwFrom);
 
                 // FIXME: rounding to nearest track
                 if (time_format == MCI_FORMAT_TMSF) {
@@ -268,10 +266,8 @@ MCIERROR WINAPI fake_mciSendCommandA(MCIDEVICEID IDDevice, UINT uMsg, DWORD_PTR 
                 if (info.first > lastTrack) info.first = lastTrack;
 
                 info.last = info.first;
-            }
-
-            if (fdwCommand & MCI_TO) {
-                DVERBOSE("    dwTo:   %d\r\n", parms->dwTo);
+            } else if (fdwCommand & MCI_TO) {
+                DVERBOSE("    dwTo:   %d", parms->dwTo);
 
                 if (time_format == MCI_FORMAT_TMSF) {
                     info.last = MCI_TMSF_TRACK(parms->dwTo);
@@ -313,34 +309,26 @@ MCIERROR WINAPI fake_mciSendCommandA(MCIDEVICEID IDDevice, UINT uMsg, DWORD_PTR 
                 else
                     ResumeThread(player);       
             }
-        }
-
-        if (uMsg == MCI_STOP) {
-            DVERBOSE("  MCI_STOP\r\n");
+        } else if (uMsg == MCI_STOP) {
+            DVERBOSE("  MCI_STOP");
             playing = 0;
-        }
-
-        if (uMsg == MCI_STATUS) {
+        } else if (uMsg == MCI_STATUS) {
             LPMCI_STATUS_PARMS parms = (LPVOID)dwParam;
 
-            DVERBOSE("  MCI_STATUS\r\n");
+            DVERBOSE("  MCI_STATUS");
 
             parms->dwReturn = 0;
 
             if (fdwCommand & MCI_TRACK) {
-                DVERBOSE("    MCI_TRACK\r\n");
-                DVERBOSE("      dwTrack = %d\r\n", parms->dwTrack);
-            }
-
-            if (fdwCommand & MCI_STATUS_ITEM) {
-                DVERBOSE("    MCI_STATUS_ITEM\r\n");
+                DVERBOSE("    MCI_TRACK");
+                DVERBOSE("      dwTrack = %d", parms->dwTrack);
+            } else if (fdwCommand & MCI_STATUS_ITEM) {
+                DVERBOSE("    MCI_STATUS_ITEM");
 
                 if (parms->dwItem == MCI_STATUS_CURRENT_TRACK) {
-                    DVERBOSE("      MCI_STATUS_CURRENT_TRACK\r\n");
-                }
-
-                if (parms->dwItem == MCI_STATUS_LENGTH) {
-                    DVERBOSE("      MCI_STATUS_LENGTH\r\n");
+                    DVERBOSE("      MCI_STATUS_CURRENT_TRACK");
+                } else if (parms->dwItem == MCI_STATUS_LENGTH) {
+                    DVERBOSE("      MCI_STATUS_LENGTH");
 
                     int seconds = tracks[parms->dwTrack].length;
 
@@ -351,60 +339,44 @@ MCIERROR WINAPI fake_mciSendCommandA(MCIDEVICEID IDDevice, UINT uMsg, DWORD_PTR 
                             parms->dwReturn = MCI_MAKE_MSF(seconds / 60, seconds % 60, 0);
                         }
                     }
-                }
-
-                if (parms->dwItem == MCI_CDA_STATUS_TYPE_TRACK) {
-                    DVERBOSE("      MCI_CDA_STATUS_TYPE_TRACK\r\n");
-                }
-
-                if (parms->dwItem == MCI_STATUS_MEDIA_PRESENT) {
-                    DVERBOSE("      MCI_STATUS_MEDIA_PRESENT\r\n");
+                } else if (parms->dwItem == MCI_CDA_STATUS_TYPE_TRACK) {
+                    DVERBOSE("      MCI_CDA_STATUS_TYPE_TRACK");
+                } else if (parms->dwItem == MCI_STATUS_MEDIA_PRESENT) {
+                    DVERBOSE("      MCI_STATUS_MEDIA_PRESENT");
                     parms->dwReturn = lastTrack > 0;
-                }
-
-                if (parms->dwItem == MCI_STATUS_NUMBER_OF_TRACKS) {
-                    DVERBOSE("      MCI_STATUS_NUMBER_OF_TRACKS\r\n");
+                } else if (parms->dwItem == MCI_STATUS_NUMBER_OF_TRACKS) {
+                    DVERBOSE("      MCI_STATUS_NUMBER_OF_TRACKS");
                     parms->dwReturn = numTracks;
-                }
-
-                if (parms->dwItem == MCI_STATUS_POSITION) {
-                    DVERBOSE("      MCI_STATUS_POSITION\r\n");
+                } else if (parms->dwItem == MCI_STATUS_POSITION) {
+                    DVERBOSE("      MCI_STATUS_POSITION");
 
                     if (fdwCommand & MCI_TRACK) {
                         // FIXME: implying milliseconds
                         parms->dwReturn = tracks[parms->dwTrack].position * 1000;
                     }
-                }
-
-                if (parms->dwItem == MCI_STATUS_MODE) {
-                    DVERBOSE("      MCI_STATUS_MODE\r\n");
-                    DVERBOSE("        we are %s\r\n", playing ? "playing" : "NOT playing");
+                } else if (parms->dwItem == MCI_STATUS_MODE) {
+                    DVERBOSE("      MCI_STATUS_MODE");
+                    DVERBOSE("        we are %s", playing ? "playing" : "NOT playing");
 
                     parms->dwReturn = playing ? MCI_MODE_PLAY : MCI_MODE_STOP;
-                }
-
-                if (parms->dwItem == MCI_STATUS_READY) {
-                    DVERBOSE("      MCI_STATUS_READY\r\n");
-                }
-
-                if (parms->dwItem == MCI_STATUS_TIME_FORMAT) {
-                    DVERBOSE("      MCI_STATUS_TIME_FORMAT\r\n");
-                }
-
-                if (parms->dwItem == MCI_STATUS_START) {
-                    DVERBOSE("      MCI_STATUS_START\r\n");
+                } else if (parms->dwItem == MCI_STATUS_READY) {
+                    DVERBOSE("      MCI_STATUS_READY");
+                } else if (parms->dwItem == MCI_STATUS_TIME_FORMAT) {
+                    DVERBOSE("      MCI_STATUS_TIME_FORMAT");
+                } else if (parms->dwItem == MCI_STATUS_START) {
+                    DVERBOSE("      MCI_STATUS_START");
                 }
             }
 
             DVERBOSE("  dwReturn %d\n", parms->dwReturn);
 
         }
+    } else goto BYPASS;
 
-        return 0;
-    }
-
-    /* fallback */
-    return MCIERR_UNRECOGNIZED_COMMAND;
+    return MMSYSERR_NOERROR;
+    BYPASS:
+        DVERBOSE("fake_mciSendCommandA bypassed!")
+        return mciSendCommandA(IDDevice, uMsg, fdwCommand, dwParam);
 }
 
 /*  
@@ -455,7 +427,6 @@ unfreeze
 update
 where
 window
-*/  
 */
 
 //TODO: maybe move all logic to fake_mciSendCommandA, only doing tokenization
@@ -477,74 +448,72 @@ MCIERROR WINAPI fake_mciSendStringA(LPCTSTR cmd, LPTSTR ret, UINT cchReturn, HAN
     // -- Implement Commands --
 
     // OPEN
-    if (com && strcmp(com, "open") == 0) {
+    if (com && !strcmp(com, "open")) {
         com = strtok(NULL, " ,.-");
-        if (com && strcmp(com, "cdaudio") == 0) {
+        if (com && !strcmp(com, "cdaudio")) {
             DVERBOSE("  Returning magic device id for MCI_DEVTYPE_CD_AUDIO");
             itoa(MAGIC_DEVICEID, ret, 16);
             return MMSYSERR_NOERROR;
         }
-        return MMSYSERR_NOERROR;
-    }
-
+        goto BYPASS;
     // SET
-    if (com && strcmp(com, "set") == 0) {
+    } else if (com && !strcmp(com, "set")) {
         com = strtok(NULL, " ,.-"); // Get next token
-        if (com) { // TODO: FIX: Accept everything. This may bring unexpected behaviour
+        //FIX: Don't accept everything.
+        if (com && !strcmp(com, "cdaudio")) { //
             com = strtok(NULL, " ,.-"); // Get next token
 
             // TIME
-            if (com && strcmp(com, "time") == 0) {
+            if (com && !strcmp(com, "time")) {
                 com = strtok(NULL, " ,.-"); // Get next token
 
                 // FORMAT
-                if (com && strcmp(com, "format") == 0) {
+                if (com && !strcmp(com, "format")) {
                     com = strtok(NULL, " ,.-"); // Get next token
                     static MCI_SET_PARMS parms;
 
                     // MILLISECONDS
-                    if (com && strcmp(com, "milliseconds") == 0) {
+                    if (com && !strcmp(com, "milliseconds")) {
                         parms.dwTimeFormat = MCI_FORMAT_MILLISECONDS;
                         fake_mciSendCommandA(MAGIC_DEVICEID, MCI_SET, MCI_SET_TIME_FORMAT, (DWORD_PTR)&parms);
                         return MMSYSERR_NOERROR;
                     }
 
                     // MSF
-                    if (com && strcmp(com, "msf") == 0) {
+                    if (com && !strcmp(com, "msf")) {
                         parms.dwTimeFormat = MCI_FORMAT_MSF;
                         fake_mciSendCommandA(MAGIC_DEVICEID, MCI_SET, MCI_SET_TIME_FORMAT, (DWORD_PTR)&parms);
                         return MMSYSERR_NOERROR;
                     }
 
                     // TMSF
-                    if (com && strcmp(com, "tmsf") == 0) {
+                    if (com && !strcmp(com, "tmsf")) {
                         parms.dwTimeFormat = MCI_FORMAT_TMSF;
                         fake_mciSendCommandA(MAGIC_DEVICEID, MCI_SET, MCI_SET_TIME_FORMAT, (DWORD_PTR)&parms);
                         return MMSYSERR_NOERROR;
                     }
                 }
             }
-        }
+        } else goto BYPASS;
 
         // Accept all other commands
         return MMSYSERR_NOERROR;
-    }
-
     // STATUS
-    if (com && strcmp(com, "status") == 0) {
+    } else if (com && !strcmp(com, "status")) {
         com = strtok(NULL, " ,.-"); // Get next token
 
-        if (com) { // TODO: FIX: Accept everything. This may bring unexpected behaviour
+        //FIX: Don't accept everything.
+        if (com && !strcmp(com, "cdaudio")) { 
             com = strtok(NULL, " ,.-"); // Get next token
             MCI_STATUS_PARMS parms;
 
             // LENGTH
-            if (com && strcmp(com, "length") == 0) {
+            if (com && !strcmp(com, "length")) {
                 parms.dwItem = MCI_STATUS_LENGTH;
                 com = strtok(NULL, " ,.-"); // Get next token
 
                 // TRACK
-                if (com && strcmp(com, "track") == 0) {
+                if (com && !strcmp(com, "track")) {
                     com = strtok(NULL, " ,.-"); // Get next token (TRACK NUMBER)
 
                     // (INT) TRACK NUMBER
@@ -560,12 +529,12 @@ MCIERROR WINAPI fake_mciSendStringA(LPCTSTR cmd, LPTSTR ret, UINT cchReturn, HAN
             }
 
             // POSITION
-            if (com && strcmp(com, "position") == 0) {
+            if (com && !strcmp(com, "position")) {
                 parms.dwItem = MCI_STATUS_POSITION;
                 com = strtok(NULL, " ,.-"); // Get next token
 
                 // TRACK
-                if (com && strcmp(com, "track") == 0) {
+                if (com && !strcmp(com, "track")) {
                     com = strtok(NULL, " ,.-"); // Get next token (TRACK NUMBER)
 
                     // (INT) TRACK NUMBER
@@ -581,15 +550,15 @@ MCIERROR WINAPI fake_mciSendStringA(LPCTSTR cmd, LPTSTR ret, UINT cchReturn, HAN
             }
 
             // NUMBER
-            if (com && strcmp(com, "number") == 0) {
+            if (com && !strcmp(com, "number")) {
                 com = strtok(NULL, " ,.-"); // Get next token
 
                 // OF
-                if (com && strcmp(com, "of") == 0) {
+                if (com && !strcmp(com, "of")) {
                     com = strtok(NULL, " ,.-"); // Get next token
 
                     // TRACKS
-                    if (com && strcmp(com, "tracks") == 0) {
+                    if (com && !strcmp(com, "tracks")) {
                         itoa(numTracks, ret, 10); // Response
                         return MMSYSERR_NOERROR;
                     }
@@ -597,21 +566,20 @@ MCIERROR WINAPI fake_mciSendStringA(LPCTSTR cmd, LPTSTR ret, UINT cchReturn, HAN
 
                 return MMSYSERR_NOERROR;
             }
-        }
+        } else goto BYPASS;
 
         // Accept all other commands
         return MMSYSERR_NOERROR;
-    }
-
     // PLAY
-    if (com && strcmp(com, "play") == 0) {
+    } else if (com && !strcmp(com, "play")) {
         com = strtok(NULL, " ,.-"); // Get next token
-
-        if (com) { // TODO: FIX: Accept everything. This may bring unexpected behaviour
+        
+        //FIX: Don't accept everything.
+        if (com && !strcmp(com, "cdaudio")) { 
             com = strtok(NULL, " ,.-"); // Get next token
 
             // FROM
-            if (com && strcmp(com, "from") == 0) {
+            if (com && !strcmp(com, "from")) {
                 com = strtok(NULL, " ,.-"); // Get next token (FROM POS (INT))
 
                 // (INT) From Time
@@ -622,7 +590,7 @@ MCIERROR WINAPI fake_mciSendStringA(LPCTSTR cmd, LPTSTR ret, UINT cchReturn, HAN
                     com = strtok(NULL, " ,.-"); // Get next token
 
                     // TO
-                    if (com && strcmp(com, "to") == 0) {
+                    if (com && !strcmp(com, "to")) {
                         com = strtok(NULL, " ,.-"); // Get next token (TO POS (INT)))
 
                         // (INT) To Time
@@ -646,39 +614,44 @@ MCIERROR WINAPI fake_mciSendStringA(LPCTSTR cmd, LPTSTR ret, UINT cchReturn, HAN
                     }
                 }
             }
-        }
+        } else goto BYPASS;
 
         // Accept all other commands
         return MMSYSERR_NOERROR;
-    }
-
     // STOP
-    if (com && strcmp(com, "stop") == 0) {
-        // TODO: No support for ALIASES
-        fake_mciSendCommandA(MAGIC_DEVICEID, MCI_STOP, 0, (DWORD_PTR)NULL);
-        return 0;
-    }
-
+    } else if (com && !strcmp(com, "stop")) {
+        //FIX: Don't accept everything.
+        if (com && !strcmp(com, "cdaudio")) { 
+            // TODO: No support for ALIASES
+            return fake_mciSendCommandA(MAGIC_DEVICEID, MCI_STOP, 0, (DWORD_PTR)NULL);
+        } else goto BYPASS;
     // CLOSE
-    if (com && strcmp(com, "close") == 0) {
-        // TODO: No support for ALIASES
-        fake_mciSendCommandA(MAGIC_DEVICEID, MCI_CLOSE, 0, (DWORD_PTR)NULL);
-        return 0;
-    }
+    } else if (com && !strcmp(com, "close")) {
+        //FIX: Don't accept everything.
+        if (com && !strcmp(com, "cdaudio")) { 
+            // TODO: No support for ALIASES
+            return fake_mciSendCommandA(MAGIC_DEVICEID, MCI_CLOSE, 0, (DWORD_PTR)NULL);
+        } else goto BYPASS;
+    } else goto BYPASS;
 
-    // TODO: Unfinished. Dunno what this does.. 
-    if (strstr(cmd, "sysinfo")) {
-        strcpy(ret, "cd");
-        return MMSYSERR_NOERROR;
-    }
+    //// TODO: Unfinished. Dunno what this does.. 
+    //if (strstr(cmd, "sysinfo")) {
+    //    strcpy(ret, "cd");
+    //    return MMSYSERR_NOERROR;
+    //}
     
     /* This could be useful if this would be 100% implemented */
     // return MCIERR_UNRECOGNIZED_COMMAND;
+
+    //fallback
     return MMSYSERR_NOERROR;
+    BYPASS:
+        DVERBOSE("fake_mciSendStringA bypassed!")
+        return mciSendStringA(cmd, ret, cchReturn, hwndCallback);
 }
 
 UINT WINAPI fake_auxGetNumDevs() {
-    DVERBOSE("fake_auxGetNumDevs()\r\n");
+    DVERBOSE("fake_auxGetNumDevs()");
     return 1;
 }
 
@@ -697,7 +670,7 @@ MMRESULT WINAPI fake_auxGetDevCapsA(UINT_PTR uDeviceID, LPAUXCAPS lpCaps, UINT c
 
 
 MMRESULT WINAPI fake_auxGetVolume(UINT uDeviceID, LPDWORD lpdwVolume) {
-    DVERBOSE("fake_auxGetVolume(uDeviceId=%08X, lpdwVolume=%p)\r\n", uDeviceID, lpdwVolume);
+    DVERBOSE("fake_auxGetVolume(uDeviceId=%08X, lpdwVolume=%p)", uDeviceID, lpdwVolume);
     *lpdwVolume = 0x00000000;
     return MMSYSERR_NOERROR;
 }
@@ -706,7 +679,7 @@ MMRESULT WINAPI fake_auxSetVolume(UINT uDeviceID, DWORD dwVolume) {
     static DWORD oldVolume = -1;
     char cmdbuf[256];
 
-    DVERBOSE("fake_auxSetVolume(uDeviceId=%08X, dwVolume=%08X)\r\n", uDeviceID, dwVolume);
+    DVERBOSE("fake_auxSetVolume(uDeviceId=%08X, dwVolume=%08X)", uDeviceID, dwVolume);
 
     if (dwVolume == oldVolume)
     {
