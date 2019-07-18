@@ -288,9 +288,11 @@ MCIERROR WINAPI fake_mciSendCommandA(MCIDEVICEID IDDevice, UINT uMsg, DWORD_PTR 
                     info.last = parms->dwTo;
                 }
 
-                if (info.last < info.first) info.last = info.first;
-
-                if (info.last > lastTrack)  info.last = lastTrack;
+                if (info.last < info.first)  info.last = info.first;
+                if (info.last > lastTrack)   info.last = lastTrack;
+                //Virtua FIghter 2(and similar) fix
+                if (info.first == info.last) info.last = info.first + 1;
+                
             }
 
             if (info.first && (fdwCommand & MCI_FROM)) {
@@ -446,8 +448,10 @@ update
 where
 window
 */  
+*/
 
-// this is really fugly but for christ sake why did anyone use it?!
+//TODO: maybe move all logic to fake_mciSendCommandA, only doing tokenization
+
 MCIERROR WINAPI fake_mciSendStringA(LPCTSTR cmd, LPTSTR ret, UINT cchReturn, HANDLE hwndCallback) {
     DVERBOSE("MCI-SendStringA: %s\n", cmd);
 
@@ -456,66 +460,72 @@ MCIERROR WINAPI fake_mciSendStringA(LPCTSTR cmd, LPTSTR ret, UINT cchReturn, HAN
     for (int i = 0; cmdbuf[i]; i++) {
         cmdbuf[i] = tolower(cmdbuf[i]);
     }
-    
+
     // Explode string into tokens
-    DVERBOSE("Splitting string \"%s\" into tokens:\n", cmdbuf);
+    DVERBOSE("Splitting string into tokens: %s", cmdbuf);
     char * com;
     com = strtok(cmdbuf, " ,.-");
-    
+
     // -- Implement Commands --
-    
+
     // OPEN
-    if (com && strcmp(com, "open") == 0) { // TODO: 
-        return 0;
+    if (com && strcmp(com, "open") == 0) {
+        com = strtok(NULL, " ,.-");
+        if (com && strcmp(com, "cdaudio") == 0) {
+            DVERBOSE("  Returning magic device id for MCI_DEVTYPE_CD_AUDIO");
+            itoa(MAGIC_DEVICEID, ret, 16);
+            return MMSYSERR_NOERROR;
+        }
+        return MMSYSERR_NOERROR;
     }
-    
+
     // SET
     if (com && strcmp(com, "set") == 0) {
         com = strtok(NULL, " ,.-"); // Get next token
-        if(com){ // TODO: FIX: Accept everything. This may bring unexpected behaviour
+        if (com) { // TODO: FIX: Accept everything. This may bring unexpected behaviour
             com = strtok(NULL, " ,.-"); // Get next token
-            
+
             // TIME
-            if (com && strcmp(com, "time") == 0) { 
+            if (com && strcmp(com, "time") == 0) {
                 com = strtok(NULL, " ,.-"); // Get next token
-                
+
                 // FORMAT
-                if (com && strcmp(com, "format") == 0) { 
+                if (com && strcmp(com, "format") == 0) {
                     com = strtok(NULL, " ,.-"); // Get next token
                     static MCI_SET_PARMS parms;
-                    
+
                     // MILLISECONDS
                     if (com && strcmp(com, "milliseconds") == 0) {
                         parms.dwTimeFormat = MCI_FORMAT_MILLISECONDS;
                         fake_mciSendCommandA(MAGIC_DEVICEID, MCI_SET, MCI_SET_TIME_FORMAT, (DWORD_PTR)&parms);
-                        return 0;
+                        return MMSYSERR_NOERROR;
                     }
-                    
+
                     // MSF
                     if (com && strcmp(com, "msf") == 0) {
                         parms.dwTimeFormat = MCI_FORMAT_MSF;
                         fake_mciSendCommandA(MAGIC_DEVICEID, MCI_SET, MCI_SET_TIME_FORMAT, (DWORD_PTR)&parms);
-                        return 0;
+                        return MMSYSERR_NOERROR;
                     }
-                    
+
                     // TMSF
                     if (com && strcmp(com, "tmsf") == 0) {
                         parms.dwTimeFormat = MCI_FORMAT_TMSF;
                         fake_mciSendCommandA(MAGIC_DEVICEID, MCI_SET, MCI_SET_TIME_FORMAT, (DWORD_PTR)&parms);
-                        return 0;
+                        return MMSYSERR_NOERROR;
                     }
                 }
             }
         }
-        
+
         // Accept all other commands
-        return 0;
+        return MMSYSERR_NOERROR;
     }
-    
+
     // STATUS
     if (com && strcmp(com, "status") == 0) {
         com = strtok(NULL, " ,.-"); // Get next token
-        
+
         if (com) { // TODO: FIX: Accept everything. This may bring unexpected behaviour
             com = strtok(NULL, " ,.-"); // Get next token
             MCI_STATUS_PARMS parms;
@@ -524,44 +534,44 @@ MCIERROR WINAPI fake_mciSendStringA(LPCTSTR cmd, LPTSTR ret, UINT cchReturn, HAN
             if (com && strcmp(com, "length") == 0) {
                 parms.dwItem = MCI_STATUS_LENGTH;
                 com = strtok(NULL, " ,.-"); // Get next token
-                
+
                 // TRACK
                 if (com && strcmp(com, "track") == 0) {
                     com = strtok(NULL, " ,.-"); // Get next token (TRACK NUMBER)
-                    
+
                     // (INT) TRACK NUMBER
-                    if(com) { // TODO: Check if this is an INTEGER (Number)
+                    if (com) { // TODO: Check if this is an INTEGER (Number)
                         parms.dwTrack = atoi(com);
                         fake_mciSendCommandA(MAGIC_DEVICEID, MCI_STATUS, MCI_STATUS_ITEM, (DWORD_PTR)&parms);
                         itoa(parms.dwReturn, ret, 10); // Response
-                        return 0;
-                    }   
+                        return MMSYSERR_NOERROR;
+                    }
                 }
-                
-                return 0;
+
+                return MMSYSERR_NOERROR;
             }
-        
+
             // POSITION
             if (com && strcmp(com, "position") == 0) {
                 parms.dwItem = MCI_STATUS_POSITION;
                 com = strtok(NULL, " ,.-"); // Get next token
-                
+
                 // TRACK
                 if (com && strcmp(com, "track") == 0) {
                     com = strtok(NULL, " ,.-"); // Get next token (TRACK NUMBER)
-                    
+
                     // (INT) TRACK NUMBER
-                    if(com){ // TODO: Check if this is an INTEGER (Number)
+                    if (com) { // TODO: Check if this is an INTEGER (Number)
                         parms.dwTrack = atoi(com);
-                        fake_mciSendCommandA(MAGIC_DEVICEID, MCI_STATUS, MCI_STATUS_ITEM|MCI_TRACK, (DWORD_PTR)&parms);
+                        fake_mciSendCommandA(MAGIC_DEVICEID, MCI_STATUS, MCI_STATUS_ITEM | MCI_TRACK, (DWORD_PTR)&parms);
                         itoa(parms.dwReturn, ret, 10); // Response
-                        return 0;
-                    }   
+                        return MMSYSERR_NOERROR;
+                    }
                 }
-                
-                return 0;
+
+                return MMSYSERR_NOERROR;
             }
-            
+
             // NUMBER
             if (com && strcmp(com, "number") == 0) {
                 com = strtok(NULL, " ,.-"); // Get next token
@@ -573,74 +583,74 @@ MCIERROR WINAPI fake_mciSendStringA(LPCTSTR cmd, LPTSTR ret, UINT cchReturn, HAN
                     // TRACKS
                     if (com && strcmp(com, "tracks") == 0) {
                         itoa(numTracks, ret, 10); // Response
-                        return 0;
-                    }   
+                        return MMSYSERR_NOERROR;
+                    }
                 }
 
-                return 0;
+                return MMSYSERR_NOERROR;
             }
         }
-        
+
         // Accept all other commands
-        return 0;
-    }   
-    
+        return MMSYSERR_NOERROR;
+    }
+
     // PLAY
     if (com && strcmp(com, "play") == 0) {
         com = strtok(NULL, " ,.-"); // Get next token
-        
-        if(com) { // TODO: FIX: Accept everything. This may bring unexpected behaviour
+
+        if (com) { // TODO: FIX: Accept everything. This may bring unexpected behaviour
             com = strtok(NULL, " ,.-"); // Get next token
 
             // FROM
             if (com && strcmp(com, "from") == 0) {
                 com = strtok(NULL, " ,.-"); // Get next token (FROM POS (INT))
-                
+
                 // (INT) From Time
-                if(com) { // TODO: Check if number is INTEGER
-                    
+                if (com) { // TODO: Check if number is INTEGER
+
                     int posFrom = atoi(com);// Parse Integer
-                    
+
                     com = strtok(NULL, " ,.-"); // Get next token
-                    
+
                     // TO
                     if (com && strcmp(com, "to") == 0) {
                         com = strtok(NULL, " ,.-"); // Get next token (TO POS (INT)))
-                            
-                            // (INT) To Time
-                            if(com) {
-                                int posTo = atoi(com); // Parse Integer
-                            
-                                static MCI_PLAY_PARMS parms;
-                                parms.dwFrom = posFrom;
-                                parms.dwTo = posTo;
-                                fake_mciSendCommandA(MAGIC_DEVICEID, MCI_PLAY, MCI_FROM|MCI_TO, (DWORD_PTR)&parms);
-                                //free(posFrom); // ???
-                                //free(posTo); // ???
-                                return 0;
-                            }
+
+                        // (INT) To Time
+                        if (com) {
+                            int posTo = atoi(com); // Parse Integer
+
+                            static MCI_PLAY_PARMS parms;
+                            parms.dwFrom = posFrom;
+                            parms.dwTo = posTo;
+                            fake_mciSendCommandA(MAGIC_DEVICEID, MCI_PLAY, MCI_FROM | MCI_TO, (DWORD_PTR)&parms);
+                            //free(posFrom); // ???
+                            //free(posTo); // ???
+                            return MMSYSERR_NOERROR;
+                        }
                     } else {
                         // No TO position specified
                         static MCI_PLAY_PARMS parms;
                         parms.dwFrom = posFrom;
                         fake_mciSendCommandA(MAGIC_DEVICEID, MCI_PLAY, MCI_FROM, (DWORD_PTR)&parms);
-                        return 0;
+                        return MMSYSERR_NOERROR;
                     }
                 }
             }
         }
-        
+
         // Accept all other commands
-        return 0;
+        return MMSYSERR_NOERROR;
     }
-    
+
     // STOP
     if (com && strcmp(com, "stop") == 0) {
         // TODO: No support for ALIASES
         fake_mciSendCommandA(MAGIC_DEVICEID, MCI_STOP, 0, (DWORD_PTR)NULL);
         return 0;
     }
-    
+
     // CLOSE
     if (com && strcmp(com, "close") == 0) {
         // TODO: No support for ALIASES
@@ -651,13 +661,12 @@ MCIERROR WINAPI fake_mciSendStringA(LPCTSTR cmd, LPTSTR ret, UINT cchReturn, HAN
     // TODO: Unfinished. Dunno what this does.. 
     if (strstr(cmd, "sysinfo")) {
         strcpy(ret, "cd");
-        return 0;
+        return MMSYSERR_NOERROR;
     }
     
     /* This could be useful if this would be 100% implemented */
     // return MCIERR_UNRECOGNIZED_COMMAND;
-    
-    return 0;
+    return MMSYSERR_NOERROR;
 }
 
 UINT WINAPI fake_auxGetNumDevs() {
