@@ -25,31 +25,80 @@
 
 #define MAGIC_DEVICEID 0xBEEF
 #define MAX_TRACKS 99
+const char SONG_FMT[] = "%s\\CDMUSIC%02d\\TRACK%02d.%s";  //base, cdNum, trackNum, format
+const char FOLD_FMT[] = "%s\\CDMUSIC%02d";                //base, cdNum
 
-struct track_info {
-    char path[MAX_PATH];    // full path to ogg
+struct TrackInfo {
     unsigned int length;    // seconds
     unsigned int position;  // seconds
 };
 
-static struct track_info tracks[MAX_TRACKS];
+static struct TrackInfo tracks[MAX_TRACKS];
 
-struct play_info {
+struct PlayInfo {
+    int cdNumber;
     int first;
     int last;
 };
 
+int cdNumber = 0;
 int playing = 0;
 int updateTrack = 0;
+int updateCd = 0;
 int closed = 0;
 HANDLE player = NULL;
 int firstTrack = -1;
 int lastTrack = 0;
 int numTracks = 0;
-char music_path[2048];
+char musicPath[2048];
+char basePath[2048];
 int time_format = MCI_FORMAT_TMSF;
-CRITICAL_SECTION cs;
-static struct play_info info = { -1, -1 };
+static struct PlayInfo wanted = { -1, -1, -1};
+
+BOOL switchCd(UINT cdNum) {
+    unsigned int position = 0;
+    DWORD attr;
+    
+    Beep(1000, 20);
+    if (cdNum != cdNumber && cdNum < 100) { //same CD check, some validation
+        snprintf(musicPath, MAX_PATH, FOLD_FMT, basePath, cdNum);
+        attr = GetFileAttributesA(musicPath);
+        
+        if (attr != INVALID_FILE_ATTRIBUTES && (attr & FILE_ATTRIBUTE_DIRECTORY)) { //CD dir exists
+            cdNumber = cdNum;
+            playing = 0;
+            numTracks = 0;
+            firstTrack = -1;
+            if (player) {
+                ResumeThread(player); //just in case it's suspended, else deadlock
+                closed = 1;
+            }
+            
+            memset(tracks, 0, sizeof(tracks));
+            for (int i = 0; i < MAX_TRACKS; i++) {
+                snprintf(musicPath, MAX_PATH, SONG_FMT, basePath, cdNum, i, "OGG");
+                DVERBOSE("Path: %s", musicPath);
+                tracks[i].length = plr_length(musicPath);
+                tracks[i].position = position;
+
+                if (tracks[i].length < 4) {
+                    position += 4; // missing tracks are 4 second data tracks for us
+                } else {
+                    if (firstTrack == -1) firstTrack = i;
+
+                    DVERBOSE("Track %02d: %02d:%02d @ %d seconds", i, tracks[i].length / 60, tracks[i].length % 60, tracks[i].position);
+                    numTracks++;
+                    lastTrack = i;
+                    position += tracks[i].length;
+                }
+            }
+            DVERBOSE("Emulating total of %d CD tracks.", numTracks);
+            
+            return TRUE;
+        }
+    }
+    return FALSE;
+}
 
 int player_main() {
     int first;
@@ -57,10 +106,15 @@ int player_main() {
     int current;
     
     while (!closed) {
+        if (updateCd) {
+            switchCd(wanted.cdNumber);
+            updateCd = 0;
+        }
+        
         //set track info
         if (updateTrack) {
-            first = info.first;
-            last = info.last;
+            first = wanted.first;
+            last = wanted.last;
             current = first;
             updateTrack = 0;
         }
@@ -71,8 +125,9 @@ int player_main() {
         if ((first == last && current > last) || (first != last && current == last)) {
             playing = 0;
         } else { //try to play song
-            DVERBOSE("Next track: %s", tracks[current].path);
-            playing = plr_play(tracks[current].path);
+            snprintf(musicPath, MAX_PATH, SONG_FMT, basePath, cdNumber, current, "OGG");
+            DVERBOSE("Next track: %s", musicPath);
+            playing = plr_play(musicPath);
         }
 
         while (1) {
@@ -83,10 +138,11 @@ int player_main() {
                 plr_stop(); //end playback
                 SuspendThread(player); //pause thread until next MCI_PLAY
             }
-
             if (!plr_pump()) break; //done playing song
+            if (updateCd) break;
             if (updateTrack) break; //MCI_PLAY
         }
+        
         current++;
     }
     plr_stop();
@@ -97,36 +153,11 @@ int player_main() {
 
 BOOL WINAPI DllMain(HINSTANCE hinstDLL, DWORD fdwReason, LPVOID lpvReserved) {
     if (fdwReason == DLL_PROCESS_ATTACH) {
-        GetModuleFileName(hinstDLL, music_path, sizeof music_path);
-        memset(tracks, 0, sizeof tracks);
-
-        char *last = strrchr(music_path, '\\');
+        GetModuleFileName(hinstDLL, basePath, sizeof(basePath));
+        char *last = strrchr(basePath, '\\');
         if (last) *last = '\0';
-        strncat(music_path, "\\MUSIC", sizeof music_path - 1);
-
-        DVERBOSE("ogg-winmm music directory is %s", music_path);
-        DVERBOSE("ogg-winmm searching tracks...");
-
-        unsigned int position = 0;
-
-        for (int i = 0; i < MAX_TRACKS; i++) {
-            snprintf(tracks[i].path, sizeof tracks[i].path, "%s\\Track%02d.ogg", music_path, i);
-            tracks[i].length = plr_length(tracks[i].path);
-            tracks[i].position = position;
-
-            if (tracks[i].length < 4) {
-                tracks[i].path[0] = '\0';
-                position += 4; // missing tracks are 4 second data tracks for us
-            } else {
-                if (firstTrack == -1) firstTrack = i;
-
-                DVERBOSE("Track %02d: %02d:%02d @ %d seconds", i, tracks[i].length / 60, tracks[i].length % 60, tracks[i].position);
-                numTracks++;
-                lastTrack = i;
-                position += tracks[i].length;
-            }
-        }
-        DVERBOSE("Emulating total of %d CD tracks.", numTracks);
+        
+        switchCd(1);
     } else if (fdwReason == DLL_PROCESS_DETACH) {
         
     }
@@ -167,7 +198,7 @@ MCIERROR WINAPI fake_mciSendCommandA(MCIDEVICEID IDDevice, UINT uMsg, DWORD_PTR 
             if (LOWORD(parms->lpstrDeviceType) == MCI_DEVTYPE_CD_AUDIO) {
                 DVERBOSE("  Returning magic device id for MCI_DEVTYPE_CD_AUDIO");
                 parms->wDeviceID = MAGIC_DEVICEID;
-                return MMSYSERR_NOERROR;;
+                return MMSYSERR_NOERROR;
             } else goto BYPASS;
         }
 
@@ -184,7 +215,12 @@ MCIERROR WINAPI fake_mciSendCommandA(MCIDEVICEID IDDevice, UINT uMsg, DWORD_PTR 
     }
 
     if (IDDevice == MAGIC_DEVICEID || IDDevice == 0 || IDDevice == 0xFFFFFFFF) {
-        if (uMsg == MCI_SET) {
+        if (uMsg == MCI_LOAD) {
+            //multiCD support
+            DVERBOSE("  MCI_LOAD");
+            wanted.cdNumber = (DWORD)dwParam;
+            updateCd = 1;
+        } else if (uMsg == MCI_SET) {
             LPMCI_SET_PARMS parms = (LPVOID)dwParam;
 
             DVERBOSE("  MCI_SET");
@@ -216,7 +252,6 @@ MCIERROR WINAPI fake_mciSendCommandA(MCIDEVICEID IDDevice, UINT uMsg, DWORD_PTR 
             if (player) {
                 ResumeThread(player); //just in case it's suspended, else deadlock
                 closed = 1;
-                playing = 0;
             }
 
             playing = 0;
@@ -240,71 +275,71 @@ MCIERROR WINAPI fake_mciSendCommandA(MCIDEVICEID IDDevice, UINT uMsg, DWORD_PTR 
 
                 // FIXME: rounding to nearest track
                 if (time_format == MCI_FORMAT_TMSF) {
-                    info.first = MCI_TMSF_TRACK(parms->dwFrom);
+                    wanted.first = MCI_TMSF_TRACK(parms->dwFrom);
 
                     DVERBOSE("      TRACK  %d\n", MCI_TMSF_TRACK(parms->dwFrom));
                     DVERBOSE("      MINUTE %d\n", MCI_TMSF_MINUTE(parms->dwFrom));
                     DVERBOSE("      SECOND %d\n", MCI_TMSF_SECOND(parms->dwFrom));
                     DVERBOSE("      FRAME  %d\n", MCI_TMSF_FRAME(parms->dwFrom));
                 } else if (time_format == MCI_FORMAT_MILLISECONDS) {
-                    info.first = 0;
+                    wanted.first = 0;
 
                     for (int i = 0; i < MAX_TRACKS; i++) {
                         // FIXME: take closest instead of absolute
                         if (tracks[i].position == parms->dwFrom / 1000) {
-                            info.first = i;
+                            wanted.first = i;
                         }
                     }
 
-                    DVERBOSE("      mapped milliseconds to %d\n", info.first);
+                    DVERBOSE("      mapped milliseconds to %d\n", wanted.first);
                 } else {
                     // FIXME: not really
-                    info.first = parms->dwFrom;
+                    wanted.first = parms->dwFrom;
                 }
 
-                if (info.first < firstTrack) info.first = firstTrack;
+                if (wanted.first < firstTrack) wanted.first = firstTrack;
 
-                if (info.first > lastTrack) info.first = lastTrack;
+                if (wanted.first > lastTrack) wanted.first = lastTrack;
 
-                info.last = info.first;
+                wanted.last = wanted.first;
             } else if (fdwCommand & MCI_TO) {
                 DVERBOSE("    dwTo:   %d", parms->dwTo);
 
                 if (time_format == MCI_FORMAT_TMSF) {
-                    info.last = MCI_TMSF_TRACK(parms->dwTo);
+                    wanted.last = MCI_TMSF_TRACK(parms->dwTo);
 
                     DVERBOSE("      TRACK  %d\n", MCI_TMSF_TRACK(parms->dwTo));
                     DVERBOSE("      MINUTE %d\n", MCI_TMSF_MINUTE(parms->dwTo));
                     DVERBOSE("      SECOND %d\n", MCI_TMSF_SECOND(parms->dwTo));
                     DVERBOSE("      FRAME  %d\n", MCI_TMSF_FRAME(parms->dwTo));
                 } else if (time_format == MCI_FORMAT_MILLISECONDS) {
-                    info.last = info.first;
+                    wanted.last = wanted.first;
 
-                    for (int i = info.first; i < MAX_TRACKS; i++) {
+                    for (int i = wanted.first; i < MAX_TRACKS; i++) {
                         // FIXME: use better matching
                         if (tracks[i].position + tracks[i].length > parms->dwFrom / 1000) {
-                            info.last = i;
+                            wanted.last = i;
                             break;
                         }
                     }
 
-                    DVERBOSE("      mapped milliseconds to %d\n", info.last);
+                    DVERBOSE("      mapped milliseconds to %d\n", wanted.last);
                 } else {
-                    info.last = parms->dwTo;
+                    wanted.last = parms->dwTo;
                 }
 
-                if (info.last < info.first)  info.last = info.first;
-                if (info.last > lastTrack)   info.last = lastTrack;
+                if (wanted.last < wanted.first)  wanted.last = wanted.first;
+                if (wanted.last > lastTrack)   wanted.last = lastTrack;
                 //Virtua FIghter 2(and similar) fix
-                if (info.first == info.last) info.last = info.first + 1;
+                if (wanted.first == wanted.last) wanted.last = wanted.first + 1;
                 
             }
 
-            if (info.first && (fdwCommand & MCI_FROM)) {
+            if (wanted.first && (fdwCommand & MCI_FROM)) {
                 updateTrack = 1;
                 playing = 1;
 
-                //track info is now a global variable for live updating
+                //track wanted is now a global variable for live updating
                 if (player == NULL)
                     player = CreateThread(NULL, 0, (LPTHREAD_START_ROUTINE)player_main, NULL, 0, NULL);
                 else
