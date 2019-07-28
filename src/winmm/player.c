@@ -8,8 +8,7 @@ HWAVEOUT        plr_hwo         = NULL;
 OggVorbis_File  plr_vf;
 HANDLE          plr_ev          = NULL;
 int             plr_cnt         = 0;
-int             plr_lvol        = 0xFFFF;
-int             plr_rvol        = 0xFFFF;
+DWORD           volume          = 0xFFFFFFFF;
 WAVEHDR         *plr_buffers[3] = { NULL, NULL, NULL };
 
 #define OPENFILEWITHFAVPARAMS(x) CreateFileA(x, GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL | FILE_FLAG_SEQUENTIAL_SCAN, NULL)
@@ -82,9 +81,12 @@ void plr_stop() {
     }
 }
 
-void plr_volume(uint16_t lVol, uint16_t rVol) {
-    plr_lvol = lVol;
-    plr_rvol = rVol;
+DWORD plr_volumeGet() {
+    return dwVolume;
+}
+
+void plr_volumeSet(DWORD dwVolume) {
+    volume = dwVolume;
 }
 
 int plr_length(const char *path) {
@@ -181,12 +183,12 @@ int plr_pump() {
 
         pos += bytes;
     }
-
+    
     int x, end = pos / (sizeof(short)*2);
     short *sbuf = (short *)buf;
     for (x = 0; x < end; x++) {
-        sbuf[x+0] = ((int32_t)sbuf[x+0] * plr_lvol)>>16;
-        sbuf[x+1] = ((int32_t)sbuf[x+1] * plr_rvol)>>16;
+        sbuf[x+0] = ((int32_t)sbuf[x+0] * LOWORD(volume))>>16;
+        sbuf[x+1] = ((int32_t)sbuf[x+1] * HIWORD(volume))>>16;
     }
 
     WAVEHDR *header = malloc(sizeof(WAVEHDR));

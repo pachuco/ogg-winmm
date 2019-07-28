@@ -700,7 +700,7 @@ MMRESULT WINAPI fake_auxGetDevCapsA(UINT_PTR uDeviceID, LPAUXCAPS lpCaps, UINT c
         lpCaps->vDriverVersion = 1;
         strcpy(lpCaps->szPname, "ogg-winmm virtual CD");
         lpCaps->wTechnology = AUXCAPS_CDAUDIO;
-        lpCaps->dwSupport = AUXCAPS_VOLUME;
+        lpCaps->dwSupport = AUXCAPS_VOLUME | AUXCAPS_LRVOLUME;
 
         return MMSYSERR_NOERROR;
     } else {
@@ -712,7 +712,7 @@ MMRESULT WINAPI fake_auxGetDevCapsA(UINT_PTR uDeviceID, LPAUXCAPS lpCaps, UINT c
 MMRESULT WINAPI fake_auxGetVolume(UINT uDeviceID, LPDWORD lpdwVolume) {
     DVERBOSE("fake_auxGetVolume(uDeviceId=%08X, lpdwVolume=%p)", uDeviceID, lpdwVolume);
     if (uDeviceID == MAGIC_DEVICEID) {
-        *lpdwVolume = 0x00000000;
+        *lpdwVolume = plr_volumeGet;
         return MMSYSERR_NOERROR;
     } else {
         return real_auxGetVolume(uDeviceID, lpdwVolume);
@@ -721,25 +721,11 @@ MMRESULT WINAPI fake_auxGetVolume(UINT uDeviceID, LPDWORD lpdwVolume) {
 
 MMRESULT WINAPI fake_auxSetVolume(UINT uDeviceID, DWORD dwVolume) {
     if (uDeviceID == MAGIC_DEVICEID) {
-        static DWORD oldVolume = -1;
-        char cmdbuf[256];
-
         DVERBOSE("fake_auxSetVolume(uDeviceId=%08X, dwVolume=%08X)", uDeviceID, dwVolume);
-
-        if (dwVolume != oldVolume) {
+        
+        plr_volumeSet(dwVolume);
             
-            oldVolume = dwVolume;
-
-            unsigned short left = LOWORD(dwVolume);
-            unsigned short right = HIWORD(dwVolume);
-
-            DVERBOSE("    left : %ud (%04X)\n", left, left);
-            DVERBOSE("    right: %ud (%04X)\n", right, right);
-
-            plr_volume(left, right);
-            
-            return MMSYSERR_NOERROR;
-        }
+        return MMSYSERR_NOERROR;
     } else {
         return real_auxSetVolume(uDeviceID, dwVolume);
     }
