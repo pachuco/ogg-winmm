@@ -20,9 +20,9 @@ void ExitMonitor(LPVOID DLLHandle) {
 //if winmm.dll is already loaded, return its handle
 //otherwise, load it
 HINSTANCE loadRealDLL() {
-    //if (hRealDLL) return hRealDLL;
+    if (hRealDLL) return hRealDLL;
 
-    char winmm_path[MAX_PATH];
+    char winmm_path[MAX_PATH+10];
 
     GetSystemDirectoryA(winmm_path, MAX_PATH);
     strncat(winmm_path, "\\winmm.DLL", MAX_PATH);

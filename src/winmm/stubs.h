@@ -3,7 +3,7 @@
 
 #include <windows.h>
 
-//creates input symbol, with "real_" prefix for given function
+//creates prefixed global symbol
 #define FN_IN(FN) \
 __asm__(".globl _real_"#FN"; _real_"#FN":;"\
     "mov eax, [1f];"\
@@ -22,7 +22,7 @@ __asm__(".globl _real_"#FN"; _real_"#FN":;"\
     "3: .asciz \""#FN"\";"\
 );
 
-//creates input and output symbol for given function
+//creates prefixed global symbol and EAT entry
 #define FN_INOUT(FN) \
 __asm__(".globl _"#FN"; _"#FN":;"\
     "mov eax, [1f];"\

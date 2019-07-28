@@ -411,7 +411,7 @@ MCIERROR WINAPI fake_mciSendCommandA(MCIDEVICEID IDDevice, UINT uMsg, DWORD_PTR 
 
     return MMSYSERR_NOERROR;
     BYPASS:
-        DVERBOSE("fake_mciSendCommandA bypassed!")
+        DVERBOSE("fake_mciSendCommandA bypassed!");
         return real_mciSendCommandA(IDDevice, uMsg, fdwCommand, dwParam);
 }
 
@@ -682,7 +682,7 @@ MCIERROR WINAPI fake_mciSendStringA(LPCTSTR cmd, LPTSTR ret, UINT cchReturn, HAN
     //fallback
     return MMSYSERR_NOERROR;
     BYPASS:
-        DVERBOSE("fake_mciSendStringA bypassed!")
+        DVERBOSE("fake_mciSendStringA bypassed!");
         return real_mciSendStringA(cmd, ret, cchReturn, hwndCallback);
 }
 
@@ -712,7 +712,7 @@ MMRESULT WINAPI fake_auxGetDevCapsA(UINT_PTR uDeviceID, LPAUXCAPS lpCaps, UINT c
 MMRESULT WINAPI fake_auxGetVolume(UINT uDeviceID, LPDWORD lpdwVolume) {
     DVERBOSE("fake_auxGetVolume(uDeviceId=%08X, lpdwVolume=%p)", uDeviceID, lpdwVolume);
     if (uDeviceID == MAGIC_DEVICEID) {
-        *lpdwVolume = plr_volumeGet;
+        *lpdwVolume = plr_volumeGet();
         return MMSYSERR_NOERROR;
     } else {
         return real_auxGetVolume(uDeviceID, lpdwVolume);

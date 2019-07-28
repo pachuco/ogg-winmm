@@ -82,7 +82,7 @@ void plr_stop() {
 }
 
 DWORD plr_volumeGet() {
-    return dwVolume;
+    return volume;
 }
 
 void plr_volumeSet(DWORD dwVolume) {
