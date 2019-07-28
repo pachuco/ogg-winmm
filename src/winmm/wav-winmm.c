@@ -688,46 +688,33 @@ MCIERROR WINAPI fake_mciSendStringA(LPCTSTR cmd, LPTSTR ret, UINT cchReturn, HAN
 
 UINT WINAPI fake_auxGetNumDevs() {
     DVERBOSE("fake_auxGetNumDevs()");
+    
     return 1;
 }
 
-MMRESULT WINAPI fake_auxGetDevCapsA(UINT_PTR uDeviceID, LPAUXCAPS lpCaps, UINT cbCaps) {
+MMRESULT WINAPI fake_auxGetDevCapsA(UINT uDeviceID, LPAUXCAPS lpCaps, UINT cbCaps) {
     DVERBOSE("fake_auxGetDevCapsA(uDeviceID=%08X, lpCaps=%p, cbCaps=%08X\n", uDeviceID, lpCaps, cbCaps);
 
-    if (uDeviceID == MAGIC_DEVICEID) {
-        lpCaps->wMid = 2 /*MM_CREATIVE*/;
-        lpCaps->wPid = 401 /*MM_CREATIVE_AUX_CD*/;
-        lpCaps->vDriverVersion = 1;
-        strcpy(lpCaps->szPname, "ogg-winmm virtual CD");
-        lpCaps->wTechnology = AUXCAPS_CDAUDIO;
-        lpCaps->dwSupport = AUXCAPS_VOLUME | AUXCAPS_LRVOLUME;
+    lpCaps->wMid = 2 /*MM_CREATIVE*/;
+    lpCaps->wPid = 401 /*MM_CREATIVE_AUX_CD*/;
+    lpCaps->vDriverVersion = 1;
+    strcpy(lpCaps->szPname, "ogg-winmm virtual CD");
+    lpCaps->wTechnology = AUXCAPS_CDAUDIO;
+    lpCaps->dwSupport = AUXCAPS_VOLUME | AUXCAPS_LRVOLUME;
 
-        return MMSYSERR_NOERROR;
-    } else {
-        return real_auxGetDevCapsA(uDeviceID, lpCaps, cbCaps);
-    }
+    return MMSYSERR_NOERROR;
 }
 
 
 MMRESULT WINAPI fake_auxGetVolume(UINT uDeviceID, LPDWORD lpdwVolume) {
-    DVERBOSE("fake_auxGetVolume(uDeviceId=%08X, lpdwVolume=%p)", uDeviceID, lpdwVolume);
-    if (uDeviceID == MAGIC_DEVICEID) {
-        *lpdwVolume = plr_volumeGet();
-        return MMSYSERR_NOERROR;
-    } else {
-        return real_auxGetVolume(uDeviceID, lpdwVolume);
-    }
+    *lpdwVolume = plr_volumeGet();
+    return MMSYSERR_NOERROR;
 }
 
 MMRESULT WINAPI fake_auxSetVolume(UINT uDeviceID, DWORD dwVolume) {
-    if (uDeviceID == MAGIC_DEVICEID) {
-        DVERBOSE("fake_auxSetVolume(uDeviceId=%08X, dwVolume=%08X)", uDeviceID, dwVolume);
+    DVERBOSE("fake_auxSetVolume(uDeviceId=%08X, dwVolume=%08X)", uDeviceID, dwVolume);
+    
+    plr_volumeSet(dwVolume);
         
-        plr_volumeSet(dwVolume);
-            
-        return MMSYSERR_NOERROR;
-    } else {
-        return real_auxSetVolume(uDeviceID, dwVolume);
-    }
-
+    return MMSYSERR_NOERROR;
 }
