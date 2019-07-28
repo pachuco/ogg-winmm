@@ -32,9 +32,14 @@ USAGE:
 Copy "winmm.dll" into the same folder as the executable of the game you want 
 to emulate CD music for.
 
-In the same folder, make a "Music" subdirectory. Place the recorded music files
-from the disk as Track02.ogg, Track03.ogg, and so on in this Music folder. Remember,
-it starts with track02!
+In the same folder, make a "MUSIC01" subdirectory. Place the recorded music files
+from the disk as TRACK02.OGG, TRACK03.OGG, and so on in this MUSIC01 folder.
+Remember, it starts with TRACK02!
 
 Now, instead of playing music from the CD, the game will play music from these
 files instead.
+
+Some games have multiple audio CDs(like Outwars), subsequent MUSICxx folders are
+created. The application must be hacked, and the following function must be called:
+> mciSendCommand(0, 0x850/*MCI_LOAD*/, 0, cdNumber);
+Multiple calls with same CD or inexistent CD numbers are gracefuly ignored.
