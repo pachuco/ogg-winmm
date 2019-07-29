@@ -19,11 +19,13 @@
 #include <ctype.h>
 #include <dirent.h>
 
-#include "sup/util.h"
+#include "debug.h"
 #include "player.h"
 #include "stubs.h"
 
 #define MAGIC_DEVICEID 0xBEEF
+#define FRAMES_PER_SECOND 75
+#define SAMPLES_PER_FRAME 588
 #define MAX_TRACKS 99
 const char SONG_FMT[] = "%s\\CDMUSIC%02d\\TRACK%02d.%s";  //base, cdNum, trackNum, format
 const char FOLD_FMT[] = "%s\\CDMUSIC%02d";                //base, cdNum

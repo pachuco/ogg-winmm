@@ -45,12 +45,11 @@ set files=testmci.c
 set inclinks=-lwinmm -I.
 call :compile_bin %name% "%files% %inclinks% -mconsole -m32 -std=gnu99 -Wl,--enable-stdcall-fixup -O2 -s" testmci.exe
 
-%WINDRES% src\%l_winmm%\wav-winmm.rc.in -O coff -o %bin%\wav-winmm-rc.o
+%WINDRES% src\%l_winmm%\winmm_emu.rc.in -O coff -o %bin%\winmm_emu-rc.o
 set name=%l_winmm%
 if defined M_DEBUG set o_dbg=%opts% -D _DEBUG
-set files=player.c wav-winmm.c stubs.c wav-winmm.def
-set files=%files% sup\util.c
-set files=%files% %bin%\%l_tremor%.a %bin%\%l_ogg%.a %bin%\wav-winmm-rc.o
+set files=player.c winmm_emu.c stubs.c debug.c winmm_emu.def
+set files=%files% %bin%\%l_tremor%.a %bin%\%l_ogg%.a %bin%\winmm_emu-rc.o
 set inclinks=-lwinmm -I. -I..\%l_tremor% -I..\%l_ogg%
 call :compile_bin %name% "%files% %inclinks% -static-libgcc -m32 -std=gnu99 -Wl,--enable-stdcall-fixup -O3 -shared -s -masm=intel %o_dbg%" winmm.dll
 
