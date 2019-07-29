@@ -91,13 +91,17 @@ void plr_volumeSet(DWORD dwVolume) {
 
 int plr_length(const char *path) {
     HANDLE hFile;
-    OggVorbis_File  vf;
+    OggVorbis_File vf;
+    vorbis_info* vi;
     
     hFile = OPENFILEWITHFAVPARAMS(path);
     if (hFile == INVALID_HANDLE_VALUE) return 0;
     if (ov_open_callbacks(hFile, &vf, NULL, 0, ovCB)) return 0;
+    vi = ov_info(&vf, -1);
 
     int ret = (int)ov_time_total(&vf, -1);
+    //allow only CDAudio-spec ogg files
+    if (!(vi && vi->channels == 2 && vi->rate == 44100)) ret = OV_EINVAL;
 
     ov_clear(&vf);
 
@@ -112,16 +116,9 @@ int plr_play(const char *path) {
     if (hFile == INVALID_HANDLE_VALUE) return 0;
     if (ov_open_callbacks(hFile, &plr_vf, NULL, 0, ovCB)) return 0;
 
-    vorbis_info *vi = ov_info(&plr_vf, -1);
-
-    if (!vi) {
-        ov_clear(&plr_vf);
-        return 0;
-    }
-
     plr_fmt.wFormatTag      = WAVE_FORMAT_PCM;
-    plr_fmt.nChannels       = vi->channels;
-    plr_fmt.nSamplesPerSec  = vi->rate;
+    plr_fmt.nChannels       = 2;
+    plr_fmt.nSamplesPerSec  = 44100;
     plr_fmt.wBitsPerSample  = 16;
     plr_fmt.nBlockAlign     = plr_fmt.nChannels * (plr_fmt.wBitsPerSample / 8);
     plr_fmt.nAvgBytesPerSec = plr_fmt.nBlockAlign * plr_fmt.nSamplesPerSec;
