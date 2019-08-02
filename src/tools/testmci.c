@@ -33,8 +33,9 @@ int main(int argc, char* argv[]) {
         if (!strcmp(comBuf, "exit")) break;
         err = mciSendStringA(comBuf, retBuf, BUFSIZE, NULL);
         mciGetErrorString(err, errBuf, BUFSIZE);
-        printf("ret|%s\n", retBuf);
-        printf("err|%s\n", errBuf);
+        printf("ret |%s\n", retBuf);
+        printf("err |%d\n", err);
+        printf("emsg|%s\n", errBuf);
     }
     
     return 0;

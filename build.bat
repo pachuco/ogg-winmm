@@ -28,6 +28,11 @@ call :del %bin%\winmm.dll 0
 ::call :del %bin%\rip.exe 0
 ::call :del %bin%\testmci.exe 0
 
+set name=%l_tools%
+set files=testmci.c
+set inclinks=-lwinmm -I.
+call :compile_bin %name% "%files% %inclinks% -mconsole -m32 -std=gnu99 -Wl,--enable-stdcall-fixup -O2 -s" testmci.exe
+
 set name=%l_ogg%
 set files=framing.c bitwise.c
 set inclinks=-I.
@@ -39,11 +44,6 @@ set files=block.c codebook.c floor0.c floor1.c info.c mapping0.c mdct.c registry
 set files=%files% %bin%\%l_ogg%.a
 set inclinks=-I. -I..\%l_ogg%
 call :compile_ar %name% "%files% %inclinks% -m32 -std=gnu99 -O2 -shared -s"
-
-set name=%l_tools%
-set files=testmci.c
-set inclinks=-lwinmm -I.
-call :compile_bin %name% "%files% %inclinks% -mconsole -m32 -std=gnu99 -Wl,--enable-stdcall-fixup -O2 -s" testmci.exe
 
 %WINDRES% src\%l_winmm%\winmm_emu.rc.in -O coff -o %bin%\winmm_emu-rc.o
 set name=%l_winmm%
